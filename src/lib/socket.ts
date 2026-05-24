@@ -3,7 +3,7 @@ import { getToken } from "./api";
 
 let socket: Socket | null = null;
 
-function getSocketConfig(): { url: string; path: string } {
+function getDirectSocketConfig(): { url: string; path: string } {
   const raw =
     process.env.NEXT_PUBLIC_SOCKET_URL?.trim() ||
     (process.env.NODE_ENV === "development" ? "http://localhost:8081" : "");
@@ -32,6 +32,38 @@ function getSocketConfig(): { url: string; path: string } {
   return { url: parsed.origin, path: "/socket.io" };
 }
 
+function resolveSocketOrigin(directOrigin: string): string {
+  const secureRaw = process.env.NEXT_PUBLIC_SOCKET_SECURE_URL?.trim();
+  if (secureRaw) {
+    return new URL(secureRaw).origin;
+  }
+
+  const direct = new URL(directOrigin);
+  if (direct.protocol === "https:") {
+    return direct.origin;
+  }
+
+  if (typeof window !== "undefined" && window.location.protocol === "https:") {
+    console.error(
+      "[socket] HTTPS frontend cannot use an HTTP socket server. " +
+        "Set NEXT_PUBLIC_SOCKET_SECURE_URL to your WSS origin " +
+        "(e.g. a Cloudflare-proxied domain in front of the VPS).",
+    );
+  }
+
+  return direct.origin;
+}
+
+function getSocketConfig(): { url: string; path: string } {
+  const direct = getDirectSocketConfig();
+
+  if (typeof window !== "undefined" && window.location.protocol === "https:") {
+    return { url: resolveSocketOrigin(direct.url), path: direct.path };
+  }
+
+  return direct;
+}
+
 export function getSocket(): Socket {
   if (!socket) {
     const { url, path } = getSocketConfig();
@@ -39,7 +71,6 @@ export function getSocket(): Socket {
       path,
       autoConnect: false,
       auth: { token: getToken() },
-      // WebSocket avoids "Session ID unknown" with nginx + multiple backend instances.
       transports: ["websocket"],
       reconnectionAttempts: 10,
       reconnectionDelayMax: 10_000,
@@ -49,8 +80,14 @@ export function getSocket(): Socket {
 }
 
 export function connectSocket(): Socket {
+  const token = getToken();
+  if (!token) {
+    return getSocket();
+  }
+
   const s = getSocket();
-  s.auth = { token: getToken() };
+  s.auth = { token };
+
   if (!s.connected) {
     s.connect();
   }

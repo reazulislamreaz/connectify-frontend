@@ -5,7 +5,7 @@ const BACKEND_URL =
   process.env.BACKEND_PROXY_URL ||
   (process.env.NODE_ENV === "development"
     ? "http://localhost:8081"
-    : "https://reaz8080.syedbipul.me");
+    : "http://3.150.217.155/connectify");
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(__dirname),
