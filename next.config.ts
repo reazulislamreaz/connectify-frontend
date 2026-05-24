@@ -7,6 +7,17 @@ const BACKEND_URL =
     ? "http://localhost:8081"
     : "http://3.150.217.155/connectify");
 
+if (
+  process.env.VERCEL === "1" &&
+  !process.env.NEXT_PUBLIC_SOCKET_SECURE_URL &&
+  !process.env.NEXT_PUBLIC_SOCKET_URL?.startsWith("https://")
+) {
+  console.warn(
+    "[build] Vercel deploy: set NEXT_PUBLIC_SOCKET_URL=https://your-api-domain.com " +
+      "or NEXT_PUBLIC_SOCKET_SECURE_URL for WSS. HTTP sockets fail on HTTPS pages.",
+  );
+}
+
 const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(__dirname),
   devIndicators: {

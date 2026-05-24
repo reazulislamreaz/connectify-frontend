@@ -1,81 +1,47 @@
 import { io, Socket } from "socket.io-client";
 import { getToken } from "./api";
+import { resolveSocketClientConfig } from "./socketConfig";
 
 let socket: Socket | null = null;
+let socketKey: string | null = null;
 
-function getDirectSocketConfig(): { url: string; path: string } {
-  const raw =
-    process.env.NEXT_PUBLIC_SOCKET_URL?.trim() ||
-    (process.env.NODE_ENV === "development" ? "http://localhost:8081" : "");
-  if (!raw) {
-    throw new Error("NEXT_PUBLIC_SOCKET_URL is not set");
-  }
-
-  const parsed = new URL(raw);
-  const explicitPath = process.env.NEXT_PUBLIC_SOCKET_PATH?.trim();
-
-  if (explicitPath) {
-    return {
-      url: parsed.origin,
-      path: explicitPath.replace(/\/$/, ""),
-    };
-  }
-
-  const pathname = parsed.pathname.replace(/\/$/, "");
-  if (pathname && pathname !== "/") {
-    const path = pathname.endsWith("socket.io")
-      ? pathname
-      : `${pathname}/socket.io`;
-    return { url: parsed.origin, path };
-  }
-
-  return { url: parsed.origin, path: "/socket.io" };
+function socketTransports(): ("websocket" | "polling")[] {
+  // WebSocket-only in production avoids nginx multi-instance polling issues.
+  return process.env.NODE_ENV === "production"
+    ? ["websocket"]
+    : ["websocket", "polling"];
 }
 
-function resolveSocketOrigin(directOrigin: string): string {
-  const secureRaw = process.env.NEXT_PUBLIC_SOCKET_SECURE_URL?.trim();
-  if (secureRaw) {
-    return new URL(secureRaw).origin;
-  }
-
-  const direct = new URL(directOrigin);
-  if (direct.protocol === "https:") {
-    return direct.origin;
-  }
-
-  if (typeof window !== "undefined" && window.location.protocol === "https:") {
-    console.error(
-      "[socket] HTTPS frontend cannot use an HTTP socket server. " +
-        "Set NEXT_PUBLIC_SOCKET_SECURE_URL to your WSS origin " +
-        "(e.g. a Cloudflare-proxied domain in front of the VPS).",
-    );
-  }
-
-  return direct.origin;
-}
-
-function getSocketConfig(): { url: string; path: string } {
-  const direct = getDirectSocketConfig();
-
-  if (typeof window !== "undefined" && window.location.protocol === "https:") {
-    return { url: resolveSocketOrigin(direct.url), path: direct.path };
-  }
-
-  return direct;
+function configKey(config: { url: string; path: string }): string {
+  return `${config.url}|${config.path}`;
 }
 
 export function getSocket(): Socket {
+  const config = resolveSocketClientConfig();
+  const key = configKey(config);
+
+  if (socket && socketKey !== key) {
+    socket.removeAllListeners();
+    socket.disconnect();
+    socket = null;
+    socketKey = null;
+  }
+
   if (!socket) {
-    const { url, path } = getSocketConfig();
-    socket = io(url, {
-      path,
+    socketKey = key;
+    socket = io(config.url, {
+      path: config.path,
       autoConnect: false,
       auth: { token: getToken() },
-      transports: ["websocket"],
+      transports: socketTransports(),
+      withCredentials: true,
       reconnectionAttempts: 10,
+      reconnectionDelay: 1_000,
       reconnectionDelayMax: 10_000,
+      timeout: 20_000,
     });
   }
+
   return socket;
 }
 
@@ -91,6 +57,7 @@ export function connectSocket(): Socket {
   if (!s.connected) {
     s.connect();
   }
+
   return s;
 }
 
@@ -99,5 +66,6 @@ export function disconnectSocket(): void {
     socket.removeAllListeners();
     socket.disconnect();
     socket = null;
+    socketKey = null;
   }
 }
