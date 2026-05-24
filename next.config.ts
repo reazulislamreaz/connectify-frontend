@@ -20,6 +20,7 @@ if (
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(__dirname),
+  allowedDevOrigins: ["reaz3000.syedbipul.me"],
   devIndicators: {
     position: "bottom-right",
   },
@@ -33,6 +34,11 @@ const nextConfig: NextConfig = {
   },
   images: {
     remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "easyconnectify.duckdns.org",
+        pathname: "/uploads/**",
+      },
       {
         protocol: "https",
         hostname: "reaz8080.syedbipul.me",

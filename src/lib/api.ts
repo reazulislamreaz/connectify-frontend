@@ -95,7 +95,7 @@ export async function api<T>(
     throw new Error(
       response.ok
         ? "Invalid response from server"
-        : `Server error (${response.status}). Please try again later.`,
+        : `Server error (${response.status}). Check BACKEND_PROXY_URL in .env.local — the API path may be wrong.`,
     );
   }
 
