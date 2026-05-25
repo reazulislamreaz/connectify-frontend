@@ -207,8 +207,8 @@
     }
   }
 
-  /* Tablet & desktop — shared section polish */
-  @media (min-width: 768px) {
+  /* Tablet — shared section polish */
+  @media (min-width: 768px) and (max-width: 1023px) {
     .friends-page .friends-tabs {
       @apply flex flex-wrap gap-2;
     }
@@ -223,7 +223,7 @@
     }
 
     .friends-page .friends-list-panel {
-      @apply section-grid p-4 md:p-5 lg:p-6;
+      @apply section-grid p-4 md:p-5;
     }
 
     .friends-page .friend-row {
@@ -235,11 +235,73 @@
     }
 
     .friends-page .friends-request-panel {
-      @apply space-y-4 p-4 md:space-y-5 md:p-5 lg:p-6;
+      @apply space-y-4 p-4 md:space-y-5 md:p-5;
     }
 
     .friends-page .request-row {
       @apply rounded-2xl border border-surface-border px-4 py-4;
+    }
+  }
+
+  /* Desktop (lg+) — Facebook-style centered column */
+  @media (min-width: 1024px) {
+    .desktop-layout .page-shell {
+      @apply gap-4;
+    }
+
+    .desktop-layout .page-header {
+      @apply rounded-2xl border border-surface-border bg-white px-5 py-4 shadow-card;
+    }
+
+    .desktop-layout .page-content {
+      @apply overflow-visible p-0;
+    }
+
+    .desktop-layout .content-section {
+      @apply space-y-4;
+    }
+
+    .desktop-layout .section-toolbar,
+    .desktop-layout .card,
+    .desktop-layout .form-card {
+      @apply shadow-card;
+    }
+
+    /* Single-column feed-style lists in the center column */
+    .desktop-layout .section-grid {
+      @apply grid-cols-1 gap-4;
+    }
+
+    .desktop-layout .section-list-grid {
+      @apply grid-cols-1 gap-4;
+    }
+
+    .friends-page .friends-tabs-wrap {
+      @apply section-toolbar;
+    }
+
+    .friends-page .friends-list-panel {
+      @apply flex flex-col gap-3 border-0 bg-transparent p-0 shadow-none;
+    }
+
+    .friends-page .friend-row {
+      @apply rounded-2xl border border-surface-border bg-white px-4 py-4 shadow-card transition hover:shadow-md;
+    }
+
+    .friends-page .friend-row:last-child {
+      @apply border-b;
+    }
+
+    .friends-page .friends-request-panel {
+      @apply space-y-3 border-0 bg-transparent p-0 shadow-none;
+    }
+
+    .friends-page .request-row {
+      @apply rounded-2xl border border-surface-border bg-white px-4 py-4 shadow-card;
+    }
+
+    .desktop-layout .users-page-grid {
+      @apply grid-cols-1 gap-4;
     }
   }
 }

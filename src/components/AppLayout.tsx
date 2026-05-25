@@ -3,11 +3,13 @@
 import { usePathname } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { ProtectedRoute } from "./ProtectedRoute";
+import { DesktopContentLayout } from "./DesktopContentLayout";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isChatDetail =
     pathname.startsWith("/chat/") && pathname !== "/chat";
+  const isChatRoute = pathname === "/chat" || pathname.startsWith("/chat/");
 
   return (
     <ProtectedRoute>
@@ -18,9 +20,13 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             isChatDetail ? "pb-0" : "pb-[4.25rem]"
           }`}
         >
-          <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white md:shadow-soft">
-            {children}
-          </div>
+          {isChatRoute ? (
+            <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white">
+              {children}
+            </div>
+          ) : (
+            <DesktopContentLayout>{children}</DesktopContentLayout>
+          )}
         </main>
       </div>
     </ProtectedRoute>

@@ -138,7 +138,7 @@ export default function UsersPage() {
               />
         ) : (
           <div
-            className={`section-grid ${
+            className={`section-grid users-page-grid ${
               isSearching ? "opacity-70 transition-opacity" : "animate-fade-in"
             }`}
           >
