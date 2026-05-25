@@ -1,6 +1,7 @@
 {
-  "name": "chatting-app-frontend",
+  "name": "connectify-frontend",
   "version": "1.0.0",
+  "description": "Connectify web app — Next.js client for real-time chat, social feed, friends, and voice calls",
   "private": true,
   "scripts": {
     "dev": "next dev",

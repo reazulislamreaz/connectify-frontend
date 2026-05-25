@@ -1,6 +1,8 @@
-# Connectify
+# Connectify — Frontend
 
-**Full-stack real-time social messaging app** — 1:1 chat, social feed, friends, presence, voice notes, and audio calls. Built as a production-style capstone: separate **Next.js frontend** and **Node.js API**, deployed live with real users in mind.
+> **About:** Web client for [Connectify](https://easy-connectify.vercel.app) — a full-stack WhatsApp-style app with real-time chat, social feed, friends, and audio calls. Built with **Next.js 15**, **React 19**, and **Socket.IO**. API: [connectify-backend](https://github.com/reazulislamreaz/connectify-backend).
+
+**Full-stack real-time social messaging app** — 1:1 chat, social feed, friends, presence, voice notes, and audio calls. Production deployment on **Vercel** (frontend) + **VPS** (backend).
 
 ![Connectify Screenshot](https://i.postimg.cc/HxpDfdRX/Screenshot-from-2026-05-25-11-49-06.png)
 
@@ -13,8 +15,8 @@
 | **What it is** | WhatsApp-style web app: messaging, news feed, friend graph, profiles, voice/video calls |
 | **Live demo** | [easy-connectify.vercel.app](https://easy-connectify.vercel.app) |
 | **API** | [easyconnectify.duckdns.org](https://easyconnectify.duckdns.org) |
-| **Frontend repo** | This repository (`chatting-app-frontend`) |
-| **Backend repo** | [`chatting-app-backend`](../chatting-app-backend) (Connectify backend) |
+| **Frontend repo** | [connectify-frontend](https://github.com/reazulislamreaz/connectify-frontend) (this repo) |
+| **Backend repo** | [connectify-backend](https://github.com/reazulislamreaz/connectify-backend) |
 | **Role** | End-to-end product: UI/UX, client state, real-time client, API integration, deployment |
 
 **Skills demonstrated:** React 19, Next.js 15 App Router, TypeScript, TanStack Query, Socket.IO, responsive UI (Tailwind), JWT auth flows, infinite scroll, optimistic updates, WebRTC integration (ZEGOCLOUD), production env/proxy setup (Vercel + VPS).
@@ -87,10 +89,10 @@ flowchart TB
 | Repository | Stack | Responsibility |
 |------------|-------|----------------|
 | **This repo** | Next.js 15, React 19, Tailwind, React Query | UI, routing, client cache, sockets, call UI |
-| **[chatting-app-backend](../chatting-app-backend)** | Node.js, Express, TypeScript, MongoDB, Socket.IO | Auth, business logic, persistence, real-time events, S3, call tokens |
+| **[connectify-backend](https://github.com/reazulislamreaz/connectify-backend)** | Node.js, Express, TypeScript, MongoDB, Socket.IO | Auth, business logic, persistence, real-time events, S3, call tokens |
 
 Backend documentation (API modules, security, Redis scaling, AI roadmap):  
-**[chatting-app-backend/README.md](../chatting-app-backend/README.md)** · **[docs/API.md](../chatting-app-backend/docs/API.md)**
+**[connectify-backend/README.md](https://github.com/reazulislamreaz/connectify-backend/blob/main/README.md)** · **[docs/API.md](https://github.com/reazulislamreaz/connectify-backend/blob/main/docs/API.md)**
 
 ---
 
@@ -107,7 +109,7 @@ Backend documentation (API modules, security, Redis scaling, AI roadmap):
 | Voice / video | ZEGOCLOUD WebRTC (dynamic import) |
 | Deploy | Vercel |
 
-### Backend ([sibling repo](../chatting-app-backend))
+### Backend ([connectify-backend](https://github.com/reazulislamreaz/connectify-backend))
 
 | Layer | Technology |
 |-------|------------|
@@ -138,7 +140,7 @@ Backend documentation (API modules, security, Redis scaling, AI roadmap):
 
 - Node.js 20+
 - npm
-- [Backend](../chatting-app-backend) running locally (default port **8081** in this monorepo layout)
+- [connectify-backend](https://github.com/reazulislamreaz/connectify-backend) running locally (default port **8081**)
 
 ### Frontend
 
@@ -153,13 +155,14 @@ Open [http://localhost:3000](http://localhost:3000).
 ### Backend (separate terminal)
 
 ```bash
-cd ../chatting-app-backend
+git clone https://github.com/reazulislamreaz/connectify-backend.git
+cd connectify-backend
 npm install
 cp .env.example .env
 npm run dev
 ```
 
-See the [backend README](../chatting-app-backend/README.md#getting-started) for MongoDB, S3, Redis, and ZEGOCLOUD setup.
+See the [backend README](https://github.com/reazulislamreaz/connectify-backend#getting-started) for MongoDB, S3, Redis, and ZEGOCLOUD setup.
 
 ### Frontend `.env.local` (local API)
 
@@ -240,7 +243,7 @@ src/
 | Feed | `/api/posts` | — |
 | Calls | `/api/calls` | Invite, accept, reject, end |
 
-Full reference: [backend docs/API.md](../chatting-app-backend/docs/API.md).
+Full reference: [backend docs/API.md](https://github.com/reazulislamreaz/connectify-backend/blob/main/docs/API.md).
 
 ---
 
@@ -252,7 +255,7 @@ On-demand AI via future backend `/api/ai/*` (not in production yet):
 - Content moderation, voice transcription  
 - In-app assistant, semantic search  
 
-Details: [backend README — AI roadmap](../chatting-app-backend/README.md#roadmap--ai-features-planned).
+Details: [backend README — AI roadmap](https://github.com/reazulislamreaz/connectify-backend#roadmap--ai-features-planned).
 
 ---
 
