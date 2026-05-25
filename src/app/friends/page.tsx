@@ -20,25 +20,6 @@ import { toastError, toastSuccess } from "@/lib/toast";
 
 type Tab = "friends" | "received" | "sent";
 
-function MessageIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-      aria-hidden
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"
-      />
-    </svg>
-  );
-}
-
 function FriendAvatar({
   src,
   name,
@@ -46,16 +27,7 @@ function FriendAvatar({
   src?: string;
   name: string;
 }) {
-  return (
-    <>
-      <span className="shrink-0 sm:hidden">
-        <Avatar src={src} name={name} size="sm" />
-      </span>
-      <span className="hidden shrink-0 sm:inline-flex">
-        <Avatar src={src} name={name} size="lg" />
-      </span>
-    </>
-  );
+  return <Avatar src={src} name={name} size="lg" />;
 }
 
 export default function FriendsPage() {
@@ -124,11 +96,10 @@ export default function FriendsPage() {
           title="Friends"
           subtitle="Manage your connections and requests"
           refreshing={refreshing}
-          compact
         />
 
         <div className="page-content">
-          <div className="page-container space-y-2.5 sm:space-y-5 lg:space-y-6">
+          <div className="page-container space-y-4 md:space-y-5">
             <div className="friends-tabs tab-pills gap-1.5 sm:gap-2">
               {tabs.map((t) => (
                 <button
@@ -166,17 +137,17 @@ export default function FriendsPage() {
                     <Link
                       key={friend.id}
                       href={`/users/${friend.id}`}
-                      className="friend-row flex items-center transition sm:card sm:min-h-0 sm:gap-4 sm:border sm:p-4 sm:hover:shadow-md"
+                      className="friend-row flex items-center gap-3 transition sm:card sm:gap-4 sm:border sm:p-4 sm:hover:shadow-md"
                     >
                       <FriendAvatar
                         src={friend.profilePicture}
                         name={friend.name}
                       />
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold text-slate-900 sm:text-base">
+                        <p className="truncate font-semibold text-slate-900">
                           {friend.name}
                         </p>
-                        <p className="hidden truncate text-xs text-slate-500 sm:block sm:text-sm">
+                        <p className="mt-0.5 truncate text-sm text-slate-500">
                           {friend.email}
                         </p>
                       </div>
@@ -185,11 +156,9 @@ export default function FriendsPage() {
                         prefetchUserId={friend.id}
                         prefetchChat
                         onClick={(e) => e.stopPropagation()}
-                        aria-label={`Message ${friend.name}`}
-                        className="btn-primary flex h-8 w-8 shrink-0 items-center justify-center !p-0 sm:h-auto sm:w-auto sm:!px-4 sm:!py-2 sm:text-sm"
+                        className="btn-primary shrink-0 !px-4 !py-2 text-sm"
                       >
-                        <MessageIcon className="h-4 w-4 sm:hidden" />
-                        <span className="hidden sm:inline">Message</span>
+                        Message
                       </PrefetchLink>
                     </Link>
                   ))}
@@ -205,16 +174,16 @@ export default function FriendsPage() {
                       key={req.id}
                       className="request-row flex flex-col gap-2 sm:card sm:flex-row sm:items-center sm:gap-4 sm:border sm:p-4"
                     >
-                      <div className="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-4">
+                      <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
                         <FriendAvatar
                           src={req.sender?.profilePicture}
                           name={req.sender?.name ?? "User"}
                         />
                         <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold sm:text-base">
+                          <p className="truncate font-semibold text-slate-900">
                             {req.sender?.name ?? "Unknown"}
                           </p>
-                          <p className="hidden truncate text-xs text-slate-500 sm:block sm:text-sm">
+                          <p className="mt-0.5 truncate text-sm text-slate-500">
                             {req.sender?.email}
                           </p>
                         </div>
@@ -248,24 +217,22 @@ export default function FriendsPage() {
                     key={req.id}
                     className="request-row flex flex-col gap-2 sm:card sm:flex-row sm:items-center sm:gap-4 sm:border sm:p-4"
                   >
-                    <div className="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-4">
+                    <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
                       <FriendAvatar
                         src={req.receiver?.profilePicture}
                         name={req.receiver?.name ?? "User"}
                       />
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold sm:text-base">
+                        <p className="truncate font-semibold text-slate-900">
                           {req.receiver?.name ?? "Unknown"}
                         </p>
-                        <p className="text-xs text-amber-600 sm:text-sm">
-                          Pending
-                        </p>
+                        <p className="mt-0.5 text-sm text-amber-600">Pending</p>
                       </div>
                     </div>
                     <button
                       type="button"
                       onClick={() => cancelRequest(req.id)}
-                      className="btn-secondary w-full text-xs sm:ml-auto sm:w-auto sm:text-sm"
+                      className="btn-secondary w-full sm:ml-auto sm:w-auto"
                     >
                       Cancel
                     </button>

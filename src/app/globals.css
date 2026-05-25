@@ -153,25 +153,13 @@
       padding-right: max(0.125rem, env(safe-area-inset-right, 0px));
     }
 
-    /* Friends page — mobile list layout */
-    .friends-page .page-header {
-      @apply px-3 py-2;
-    }
-
-    .friends-page .page-content {
-      @apply px-3 py-2.5;
-    }
-
+    /* Friends page — mobile list layout (typography matches global page styles) */
     .friends-page .friends-tabs {
       @apply grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1;
     }
 
     .friends-page .friends-tabs .tab-pill {
-      @apply flex min-w-0 items-center justify-center rounded-lg px-1.5 py-1.5 text-center text-[11px] font-semibold leading-tight;
-    }
-
-    .friends-page .friends-tabs .tab-pill span {
-      @apply ml-1 px-1 text-[10px];
+      @apply flex min-w-0 items-center justify-center rounded-lg px-2 py-2 text-center;
     }
 
     .friends-page .friends-list-panel,
@@ -180,7 +168,7 @@
     }
 
     .friends-page .friend-row {
-      @apply min-h-[52px] gap-2.5 border-b border-surface-border px-3 py-2 active:bg-slate-50;
+      @apply gap-3 border-b border-surface-border px-4 py-3 active:bg-slate-50;
     }
 
     .friends-page .friend-row:last-child {
@@ -188,16 +176,11 @@
     }
 
     .friends-page .request-row {
-      @apply gap-2.5 border-b border-surface-border px-3 py-2.5;
+      @apply gap-3 border-b border-surface-border px-4 py-3;
     }
 
     .friends-page .request-row:last-child {
       @apply border-b-0;
-    }
-
-    .friends-page .request-row .btn-primary,
-    .friends-page .request-row .btn-secondary {
-      @apply !px-2.5 !py-1.5 text-xs;
     }
   }
 }

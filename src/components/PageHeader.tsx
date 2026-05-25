@@ -4,8 +4,6 @@ interface PageHeaderProps {
   action?: React.ReactNode;
   variant?: "default" | "wa";
   refreshing?: boolean;
-  /** Smaller title; hides subtitle below `sm` */
-  compact?: boolean;
 }
 
 export function PageHeader({
@@ -14,7 +12,6 @@ export function PageHeader({
   action,
   variant = "default",
   refreshing,
-  compact,
 }: PageHeaderProps) {
   const isWa = variant === "wa";
 
@@ -29,11 +26,9 @@ export function PageHeader({
       <div className="page-container flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between lg:gap-4">
         <div className="min-w-0">
           <h1
-            className={`flex items-center gap-2 truncate font-bold tracking-tight ${
-              compact
-                ? "text-base sm:text-xl md:text-2xl"
-                : "text-lg sm:text-xl md:text-2xl"
-            } ${isWa ? "text-white" : "text-slate-900"}`}
+            className={`flex items-center gap-2 truncate text-lg font-bold tracking-tight sm:text-xl md:text-2xl ${
+              isWa ? "text-white" : "text-slate-900"
+            }`}
           >
             {title}
             {refreshing && (
@@ -45,7 +40,7 @@ export function PageHeader({
           </h1>
           {subtitle && (
             <p
-              className={`mt-0.5 text-sm ${compact ? "hidden sm:block" : ""} ${
+              className={`mt-0.5 text-sm ${
                 isWa ? "text-brand-100" : "text-slate-500"
               }`}
             >

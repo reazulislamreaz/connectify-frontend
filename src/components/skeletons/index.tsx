@@ -124,14 +124,14 @@ export function FriendRowSkeleton({ count = 5 }: { count?: number }) {
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="friend-row flex items-center gap-2.5 px-3 py-2 sm:card sm:gap-4 sm:p-4"
+          className="friend-row flex items-center gap-3 sm:card sm:gap-4 sm:p-4"
         >
-          <SkeletonCircle size="h-8 w-8 sm:h-14 sm:w-14" />
-          <div className="min-w-0 flex-1 space-y-1.5 sm:space-y-2">
-            <Skeleton className="h-3.5 w-28 sm:h-4 sm:w-36" />
-            <Skeleton className="hidden h-3 w-40 sm:block sm:w-44" />
+          <SkeletonCircle size="h-14 w-14" />
+          <div className="min-w-0 flex-1 space-y-2">
+            <Skeleton className="h-4 w-36" />
+            <Skeleton className="h-3 w-44" />
           </div>
-          <Skeleton className="h-8 w-8 rounded-full sm:h-9 sm:w-24 sm:rounded-xl" />
+          <Skeleton className="h-9 w-24 rounded-xl" />
         </div>
       ))}
     </div>
