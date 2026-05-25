@@ -6,7 +6,7 @@ import { Providers } from "./providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "ChatFlow",
+  title: "Connectify",
   description: "WhatsApp-style chat, feed, and friends",
 };
 

@@ -29,7 +29,7 @@ export default function RegisterPage() {
   return (
     <AuthShell
       title="Create account"
-      subtitle="Join ChatFlow and start connecting"
+      subtitle="Join Connectify and start connecting"
       footer={
         <>
           Already have an account?{" "}

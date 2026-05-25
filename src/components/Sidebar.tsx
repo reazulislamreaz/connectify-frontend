@@ -143,7 +143,7 @@ export function Sidebar() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
               </svg>
             </div>
-            <span className="text-lg font-bold tracking-tight lg:text-xl">ChatFlow</span>
+            <span className="text-lg font-bold tracking-tight lg:text-xl">Connectify</span>
           </div>
           <div className="flex items-center gap-3 rounded-xl bg-white/10 p-3">
             <Avatar name={user?.name || "U"} src={user?.profilePicture} size="md" />

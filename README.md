@@ -1,4 +1,4 @@
-# ChatFlow (Connectify Frontend)
+# Connectify
 
 WhatsApp-style messaging app with real-time chat, social feed, friends, voice/video calls, and presence.
 
