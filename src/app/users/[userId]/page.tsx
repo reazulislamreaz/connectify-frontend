@@ -190,7 +190,7 @@ export default function UserDetailPage() {
                 </div>
               )}
 
-              <div className="card space-y-3">
+              <div className="card min-w-0 space-y-3 overflow-hidden">
                 <h3 className="text-sm font-semibold text-slate-900">About</h3>
 
                 <ProfileDetailRow
