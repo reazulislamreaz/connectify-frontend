@@ -1,55 +1,167 @@
 # Connectify
 
-WhatsApp-style messaging app with real-time chat, social feed, friends, voice/video calls, and presence.
+**Full-stack real-time social messaging app** — 1:1 chat, social feed, friends, presence, voice notes, and audio calls. Built as a production-style capstone: separate **Next.js frontend** and **Node.js API**, deployed live with real users in mind.
 
-## Live links
+![Connectify Screenshot](https://i.postimg.cc/HxpDfdRX/Screenshot-from-2026-05-25-11-49-06.png)
 
-| Service | URL |
-|---------|-----|
-| **Frontend (production)** | [https://easy-connectify.vercel.app](https://easy-connectify.vercel.app) |
-| **Backend API & Socket** | [https://easyconnectify.duckdns.org](https://easyconnectify.duckdns.org) |
+---
 
-## Features
+## At a glance (for recruiters)
 
-- Real-time messaging (Socket.IO / WebSocket)
-- Online / offline presence & typing indicators
-- News feed with posts, comments, and likes
-- Friend requests & user discovery
-- Audio / video calls (ZEGOCLOUD)
-- Profile management & avatar uploads
-- Responsive layout (mobile + desktop)
+| | |
+|---|---|
+| **What it is** | WhatsApp-style web app: messaging, news feed, friend graph, profiles, voice/video calls |
+| **Live demo** | [easy-connectify.vercel.app](https://easy-connectify.vercel.app) |
+| **API** | [easyconnectify.duckdns.org](https://easyconnectify.duckdns.org) |
+| **Frontend repo** | This repository (`chatting-app-frontend`) |
+| **Backend repo** | [`chatting-app-backend`](../chatting-app-backend) (Connectify backend) |
+| **Role** | End-to-end product: UI/UX, client state, real-time client, API integration, deployment |
+
+**Skills demonstrated:** React 19, Next.js 15 App Router, TypeScript, TanStack Query, Socket.IO, responsive UI (Tailwind), JWT auth flows, infinite scroll, optimistic updates, WebRTC integration (ZEGOCLOUD), production env/proxy setup (Vercel + VPS).
+
+---
+
+## What users can do
+
+- **Chat** — Real-time 1:1 messages (text, images, voice notes), replies, edit/delete, read receipts, typing indicators
+- **Calls** — Audio calls with invite / accept / reject (ZEGOCLOUD WebRTC)
+- **Feed** — Create posts with photos, like and comment, infinite scroll
+- **Friends** — Discover users, send/accept/cancel requests, message friends
+- **Profile** — Edit profile, avatar upload, online / last-seen presence
+- **Layout** — Mobile-first navigation + desktop layout with sidebar and feed-style center column
+
+---
+
+## Architecture (full stack)
+
+```mermaid
+flowchart TB
+  subgraph client [Frontend - Next.js on Vercel]
+    Pages[App Router pages]
+    RQ[TanStack React Query]
+    Ctx[Auth / Chat / Call context]
+    SocketC[Socket.IO client]
+    Pages --> RQ
+    Pages --> Ctx
+    Ctx --> SocketC
+  end
+
+  subgraph proxy [Next.js rewrites]
+    APIProxy["/api → backend"]
+  end
+
+  subgraph server [Backend - Node on VPS]
+    Express[Express REST API]
+    SIO[Socket.IO server]
+    Modules[auth · users · messages · posts · calls]
+    Express --> Modules
+    SIO --> Modules
+  end
+
+  subgraph infra [Data and services]
+    Mongo[(MongoDB)]
+    Redis[(Redis - optional)]
+    S3[(AWS S3 media)]
+    Zego[ZEGOCLOUD RTC]
+  end
+
+  client --> APIProxy --> Express
+  SocketC --> SIO
+  Modules --> Mongo
+  Modules --> Redis
+  Modules --> S3
+  Modules --> Zego
+```
+
+**How the pieces talk**
+
+1. **REST** — Browser calls `/api/*`; Next.js proxies to the backend (no CORS pain in production).
+2. **WebSockets** — After login, the client opens a Socket.IO connection with the JWT for live messages, typing, presence, and call signaling.
+3. **Media** — Uploads go to the API; files are stored on **AWS S3**; URLs are served back to the UI.
+4. **Calls** — Backend mints ZEGOCLOUD tokens; the frontend loads the WebRTC SDK only when a call starts.
+
+---
+
+## Repositories
+
+| Repository | Stack | Responsibility |
+|------------|-------|----------------|
+| **This repo** | Next.js 15, React 19, Tailwind, React Query | UI, routing, client cache, sockets, call UI |
+| **[chatting-app-backend](../chatting-app-backend)** | Node.js, Express, TypeScript, MongoDB, Socket.IO | Auth, business logic, persistence, real-time events, S3, call tokens |
+
+Backend documentation (API modules, security, Redis scaling, AI roadmap):  
+**[chatting-app-backend/README.md](../chatting-app-backend/README.md)** · **[docs/API.md](../chatting-app-backend/docs/API.md)**
+
+---
 
 ## Tech stack
 
-- **Framework:** Next.js 15 (App Router)
-- **UI:** React 19, Tailwind CSS
-- **Data:** TanStack React Query
-- **Realtime:** Socket.IO Client
-- **Calls:** ZEGOCLOUD WebRTC
-- **Deploy:** Vercel (frontend), VPS + nginx + PM2 (backend)
+### Frontend (this repo)
 
-## Prerequisites
+| Layer | Technology |
+|-------|------------|
+| Framework | Next.js 15 (App Router) |
+| UI | React 19, Tailwind CSS |
+| Server state | TanStack React Query (infinite queries, cache invalidation) |
+| Real-time | Socket.IO Client |
+| Voice / video | ZEGOCLOUD WebRTC (dynamic import) |
+| Deploy | Vercel |
 
-- Node.js 20+
-- npm
-- Running [chatting-app-backend](../chatting-app-backend) for local development (default port `8081`)
+### Backend ([sibling repo](../chatting-app-backend))
+
+| Layer | Technology |
+|-------|------------|
+| Runtime | Node.js 20+, TypeScript |
+| HTTP | Express 4, Zod validation |
+| Database | MongoDB (Mongoose) |
+| Real-time | Socket.IO 4 (+ optional Redis adapter) |
+| Cache | Redis (optional) |
+| Storage | AWS S3 |
+| Calls | ZEGOCLOUD server-side tokens |
+| Deploy | VPS, nginx, PM2 |
+
+---
+
+## Live environment
+
+| Service | URL |
+|---------|-----|
+| **Web app** | [https://easy-connectify.vercel.app](https://easy-connectify.vercel.app) |
+| **API & WebSocket** | [https://easyconnectify.duckdns.org](https://easyconnectify.duckdns.org) |
+| **Health check** | `GET https://easyconnectify.duckdns.org/health` |
+
+---
 
 ## Local development
 
+### Prerequisites
+
+- Node.js 20+
+- npm
+- [Backend](../chatting-app-backend) running locally (default port **8081** in this monorepo layout)
+
+### Frontend
+
 ```bash
-# Install dependencies
 npm install
-
-# Copy env and adjust if needed
 cp .env.example .env.local
-
-# Start dev server
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
 
-### Local `.env.local` (backend on your machine)
+### Backend (separate terminal)
+
+```bash
+cd ../chatting-app-backend
+npm install
+cp .env.example .env
+npm run dev
+```
+
+See the [backend README](../chatting-app-backend/README.md#getting-started) for MongoDB, S3, Redis, and ZEGOCLOUD setup.
+
+### Frontend `.env.local` (local API)
 
 ```env
 NEXT_PUBLIC_API_URL=/api
@@ -58,7 +170,7 @@ NEXT_PUBLIC_SOCKET_URL=http://localhost:8081
 NEXT_PUBLIC_UPLOADS_URL=http://localhost:8081
 ```
 
-### Local dev against the live backend
+### Frontend `.env.local` (UI only — live API)
 
 ```env
 NEXT_PUBLIC_API_URL=/api
@@ -70,73 +182,101 @@ NEXT_PUBLIC_UPLOADS_URL=https://easyconnectify.duckdns.org
 
 Restart the dev server after changing env vars.
 
-## Environment variables
+---
+
+## Environment variables (frontend)
 
 | Variable | Description | Production example |
 |----------|-------------|-------------------|
-| `NEXT_PUBLIC_API_URL` | Browser API base (use `/api` for Next.js proxy) | `/api` |
-| `BACKEND_PROXY_URL` | Server-side rewrite target (no trailing slash) | `https://easyconnectify.duckdns.org` |
-| `NEXT_PUBLIC_SOCKET_URL` | Socket.IO host origin | `https://easyconnectify.duckdns.org` |
-| `NEXT_PUBLIC_SOCKET_PATH` | Socket.IO path on the API host | `/socket.io` |
-| `NEXT_PUBLIC_UPLOADS_URL` | Base URL for uploaded media | `https://easyconnectify.duckdns.org` |
+| `NEXT_PUBLIC_API_URL` | Browser API base (use `/api` for Next proxy) | `/api` |
+| `BACKEND_PROXY_URL` | Server-side rewrite target | `https://easyconnectify.duckdns.org` |
+| `NEXT_PUBLIC_SOCKET_URL` | Socket.IO origin | `https://easyconnectify.duckdns.org` |
+| `NEXT_PUBLIC_SOCKET_PATH` | Socket path | `/socket.io` |
+| `NEXT_PUBLIC_UPLOADS_URL` | Media base URL | `https://easyconnectify.duckdns.org` |
 
-> **Important:** The production API uses `/api` and `/socket.io` at the **root** — not `/connectify/...`.
+ZEGOCLOUD keys are configured on the **backend** only.
 
-## Vercel deployment
+---
 
-1. Push this repo to GitHub and import the project in [Vercel](https://vercel.com).
-2. Add the environment variables from the table above under **Settings → Environment Variables** (Production + Preview).
-3. Redeploy after any env change.
+## Deployment
 
-Required on the **backend** (all PM2 instances):
+| Part | Platform | Notes |
+|------|----------|--------|
+| Frontend | Vercel | Set env vars above; redeploy after changes |
+| Backend | VPS + nginx + PM2 | API and Socket.IO on same origin |
+| Database | MongoDB | Atlas or self-hosted |
+| Files | AWS S3 | Avatars, post images, chat media, voice |
+
+Backend must allow the frontend origin:
 
 ```env
 CLIENT_URL=http://localhost:3000,https://easy-connectify.vercel.app,https://easyconnectify.duckdns.org
 ```
 
-## Socket.IO (production)
+---
 
-- Frontend: `https://easy-connectify.vercel.app` (HTTPS)
-- Socket server: `wss://easyconnectify.duckdns.org/socket.io`
-- Auth: JWT sent in `auth.token` after login
-- Transport: WebSocket only in production builds
-
-Verify in browser DevTools → **Network → WS** after logging in:
+## Frontend project structure
 
 ```
-wss://easyconnectify.duckdns.org/socket.io/?EIO=4&transport=websocket
+src/
+├── app/              # Routes: login, chat, feed, friends, users, dashboard, settings
+├── components/       # PostCard, ChatComposer, layouts, skeletons, modals
+├── context/          # Auth, chat list + socket handlers, voice calls
+├── hooks/            # React Query hooks (feed, messages, friends, …)
+└── lib/              # API client, socket, prefetch, uploads URL helper
 ```
 
-Status should be **101 Switching Protocols**.
+---
+
+## API surface (backend summary)
+
+| Area | REST prefix | Real-time (Socket.IO) |
+|------|-------------|------------------------|
+| Auth | `/api/auth` | — |
+| Users & profiles | `/api/users` | Presence to friends |
+| Friends | `/api/friend-requests` | — |
+| Messages | `/api/messages` | `send_message`, typing, read receipts |
+| Chats | `/api/chats` | Conversation list updates |
+| Feed | `/api/posts` | — |
+| Calls | `/api/calls` | Invite, accept, reject, end |
+
+Full reference: [backend docs/API.md](../chatting-app-backend/docs/API.md).
+
+---
+
+## Roadmap — AI features (planned)
+
+On-demand AI via future backend `/api/ai/*` (not in production yet):
+
+- Smart reply, translation, chat summaries  
+- Content moderation, voice transcription  
+- In-app assistant, semantic search  
+
+Details: [backend README — AI roadmap](../chatting-app-backend/README.md#roadmap--ai-features-planned).
+
+---
 
 ## Scripts
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start development server |
+| `npm run dev` | Development server |
 | `npm run build` | Production build |
 | `npm run start` | Run production build locally |
-| `npm run lint` | Run ESLint |
+| `npm run lint` | ESLint |
 
-## Project structure
-
-```
-src/
-├── app/              # Next.js pages (login, chat, feed, friends, …)
-├── components/       # UI components
-├── context/          # Auth, chat, call providers
-├── hooks/            # React Query hooks
-└── lib/              # API client, socket, utilities
-```
+---
 
 ## Troubleshooting
 
 | Issue | Fix |
 |-------|-----|
-| **Server error (404)** on Vercel | Set `BACKEND_PROXY_URL=https://easyconnectify.duckdns.org` and redeploy |
-| **Socket not connecting** | Ensure `NEXT_PUBLIC_SOCKET_URL` is `https://` and backend `CLIENT_URL` includes the Vercel domain |
-| **Works on localhost, not Vercel** | HTTPS frontend cannot use `http://` sockets — use the DuckDNS HTTPS URL |
-| **Env changes not applied** | Restart dev server locally; redeploy on Vercel |
+| **404 on API** (Vercel) | Set `BACKEND_PROXY_URL=https://easyconnectify.duckdns.org` and redeploy |
+| **Socket not connecting** | Use `https://` for `NEXT_PUBLIC_SOCKET_URL`; add Vercel URL to backend `CLIENT_URL` |
+| **HTTP socket on HTTPS site** | Use the production DuckDNS URL, not `http://localhost` |
+| **Env not applied** | Restart `npm run dev` or redeploy on Vercel |
+
+---
 
 ## License
 
