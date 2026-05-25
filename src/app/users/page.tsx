@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { AppLayout } from "@/components/AppLayout";
-import { PageHeader } from "@/components/PageHeader";
+import { SectionPage } from "@/components/SectionPage";
 import { EmptyState } from "@/components/EmptyState";
 import { UsersGridSkeleton } from "@/components/skeletons";
 import { UserCard } from "@/components/UserCard";
@@ -73,16 +73,13 @@ export default function UsersPage() {
 
   return (
     <AppLayout>
-      <div className="page-shell">
-        <PageHeader
-          title="Discover People"
-          subtitle="Browse profiles and connect with friends"
-          refreshing={isFetching && !isPending}
-        />
-
-        <div className="page-content">
-          <div className="page-container space-y-4 md:space-y-5">
-            <div className="relative mx-auto max-w-2xl md:max-w-none">
+      <SectionPage
+        title="Discover People"
+        subtitle="Browse profiles and connect with friends"
+        refreshing={isFetching && !isPending}
+      >
+        <div className="section-toolbar">
+          <div className="relative w-full">
               <svg
                 className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400"
                 fill="none"
@@ -103,18 +100,19 @@ export default function UsersPage() {
                 placeholder="Search by name or email..."
                 className="input-field !pl-11"
               />
-            </div>
+          </div>
+        </div>
 
-            {!showSkeleton && users.length > 0 && (
+        {!showSkeleton && users.length > 0 && (
               <p className="text-sm text-slate-500">
                 {users.length} {users.length === 1 ? "person" : "people"} found
                 {search ? ` for "${search}"` : ""}
               </p>
             )}
 
-            {showSkeleton ? (
-              <UsersGridSkeleton count={6} />
-            ) : users.length === 0 ? (
+        {showSkeleton ? (
+          <UsersGridSkeleton count={6} />
+        ) : users.length === 0 ? (
               <EmptyState
                 title="No users found"
                 description={
@@ -138,27 +136,25 @@ export default function UsersPage() {
                   </svg>
                 }
               />
-            ) : (
-              <div
-                className={`grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 ${
-                  isSearching ? "opacity-70 transition-opacity" : "animate-fade-in"
-                }`}
-              >
-                {users.map((u) => (
-                  <UserCard
-                    key={u.id}
-                    user={u}
-                    onAddFriend={sendRequest}
-                    onCancelRequest={cancelRequest}
-                    sendingRequest={sendingTo === u.id}
-                    cancellingRequest={cancellingId === u.relationship?.requestId}
-                  />
-                ))}
-              </div>
-            )}
+        ) : (
+          <div
+            className={`section-grid ${
+              isSearching ? "opacity-70 transition-opacity" : "animate-fade-in"
+            }`}
+          >
+            {users.map((u) => (
+              <UserCard
+                key={u.id}
+                user={u}
+                onAddFriend={sendRequest}
+                onCancelRequest={cancelRequest}
+                sendingRequest={sendingTo === u.id}
+                cancellingRequest={cancellingId === u.relationship?.requestId}
+              />
+            ))}
           </div>
-        </div>
-      </div>
+        )}
+      </SectionPage>
     </AppLayout>
   );
 }

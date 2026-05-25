@@ -88,10 +88,10 @@ export default function UserDetailPage() {
   return (
     <AppLayout>
       <div className="page-shell">
-        <header className="page-header flex items-center gap-3 !py-3">
+        <header className="page-header flex items-center gap-3">
           <Link
             href="/users"
-            className="flex h-9 w-9 items-center justify-center rounded-full text-slate-600 transition hover:bg-wa-panel"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-600 transition hover:bg-wa-panel md:h-10 md:w-10"
             aria-label="Back to discover"
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -99,13 +99,13 @@ export default function UserDetailPage() {
             </svg>
           </Link>
           <div className="min-w-0 flex-1">
-            <h1 className="flex items-center gap-2 truncate text-lg font-bold text-slate-900">
+            <h1 className="flex items-center gap-2 truncate text-lg font-bold tracking-tight text-slate-900 sm:text-xl md:text-2xl">
               Profile
               {isFetching && !isPending && (
                 <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-brand-500" />
               )}
             </h1>
-            <p className="text-xs text-slate-500">User details</p>
+            <p className="mt-0.5 text-sm text-slate-500">User details</p>
           </div>
         </header>
 
@@ -113,7 +113,9 @@ export default function UserDetailPage() {
           {isPending && !profile ? (
             <ProfileSkeleton />
           ) : !profile ? null : (
-            <div className="content-profile animate-fade-in space-y-4 pb-6">
+            <div className="content-section animate-fade-in pb-6">
+              <div className="md:grid md:grid-cols-[minmax(280px,360px)_1fr] md:items-start md:gap-6 lg:gap-8">
+              <div className="space-y-4">
               <div className="card flex flex-col items-center text-center">
                 <Avatar
                   name={profile.name}
@@ -141,7 +143,7 @@ export default function UserDetailPage() {
               </div>
 
               {!isSelf && (
-                <div className="card space-y-3">
+                <div className="card space-y-3 md:space-y-4">
                   {relationship === "none" && (
                     <button
                       type="button"
@@ -189,8 +191,9 @@ export default function UserDetailPage() {
                   )}
                 </div>
               )}
+              </div>
 
-              <div className="card min-w-0 space-y-3 overflow-hidden">
+              <div className="card min-w-0 space-y-3 overflow-hidden md:mt-0">
                 <h3 className="text-sm font-semibold text-slate-900">About</h3>
 
                 <ProfileDetailRow
@@ -258,6 +261,7 @@ export default function UserDetailPage() {
                       This user hasn&apos;t added more details yet.
                     </p>
                   )}
+              </div>
               </div>
             </div>
           )}

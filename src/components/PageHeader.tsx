@@ -23,7 +23,7 @@ export function PageHeader({
           : "page-header"
       }
     >
-      <div className="page-container flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between lg:gap-4">
+      <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between lg:gap-4">
         <div className="min-w-0">
           <h1
             className={`flex items-center gap-2 truncate text-lg font-bold tracking-tight sm:text-xl md:text-2xl ${

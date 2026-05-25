@@ -3,7 +3,7 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AppLayout } from "@/components/AppLayout";
-import { PageHeader } from "@/components/PageHeader";
+import { SectionPage } from "@/components/SectionPage";
 import { MessageSoundSettings } from "@/components/MessageSoundSettings";
 import { api, clearToken } from "@/lib/api";
 import { getQueryClient } from "@/lib/queryClient";
@@ -87,14 +87,11 @@ export default function SettingsPage() {
 
   return (
     <AppLayout>
-      <div className="page-shell">
-        <PageHeader
-          title="Settings"
-          subtitle="Password, sounds, and account security"
-        />
-
-        <div className="page-content">
-          <div className="page-container mx-auto max-w-2xl animate-fade-in space-y-4 md:space-y-5">
+      <SectionPage
+        title="Settings"
+        subtitle="Password, sounds, and account security"
+      >
+        <div className="section-stack animate-fade-in">
             <MessageSoundSettings />
 
             <form onSubmit={handlePasswordSubmit} className="form-card">
@@ -257,9 +254,8 @@ export default function SettingsPage() {
                 </button>
               </div>
             </form>
-          </div>
         </div>
-      </div>
+      </SectionPage>
     </AppLayout>
   );
 }

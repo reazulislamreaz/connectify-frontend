@@ -6,7 +6,7 @@ import { PrefetchLink } from "@/components/PrefetchLink";
 import { useQueryClient } from "@tanstack/react-query";
 import { AppLayout } from "@/components/AppLayout";
 import { Avatar } from "@/components/Avatar";
-import { PageHeader } from "@/components/PageHeader";
+import { SectionPage } from "@/components/SectionPage";
 import { EmptyState } from "@/components/EmptyState";
 import { FriendRowSkeleton } from "@/components/skeletons";
 import { api } from "@/lib/api";
@@ -91,39 +91,38 @@ export default function FriendsPage() {
 
   return (
     <AppLayout>
-      <div className="page-shell friends-page">
-        <PageHeader
-          title="Friends"
-          subtitle="Manage your connections and requests"
-          refreshing={refreshing}
-        />
-
-        <div className="page-content">
-          <div className="page-container space-y-4 md:space-y-5">
-            <div className="friends-tabs tab-pills gap-1.5 sm:gap-2">
-              {tabs.map((t) => (
-                <button
-                  key={t.key}
-                  type="button"
-                  onClick={() => setTab(t.key)}
-                  className={`tab-pill ${
-                    tab === t.key ? "tab-pill-active" : "tab-pill-inactive"
-                  }`}
-                >
-                  {t.label}
-                  {t.count > 0 && (
-                    <span
-                      className={`ml-1.5 rounded-full px-1.5 text-xs sm:ml-1.5 ${
-                        tab === t.key ? "bg-white/25" : "bg-slate-200/80"
-                      }`}
-                    >
-                      {t.count}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-            {loading ? (
+      <SectionPage
+        title="Friends"
+        subtitle="Manage your connections and requests"
+        refreshing={refreshing}
+        shellClassName="friends-page"
+      >
+        <div className="friends-tabs-wrap">
+          <div className="friends-tabs tab-pills gap-1.5 md:gap-2">
+            {tabs.map((t) => (
+              <button
+                key={t.key}
+                type="button"
+                onClick={() => setTab(t.key)}
+                className={`tab-pill ${
+                  tab === t.key ? "tab-pill-active" : "tab-pill-inactive"
+                }`}
+              >
+                {t.label}
+                {t.count > 0 && (
+                  <span
+                    className={`ml-1.5 rounded-full px-1.5 text-xs ${
+                      tab === t.key ? "bg-white/25" : "bg-slate-200/80"
+                    }`}
+                  >
+                    {t.count}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+        {loading ? (
               <FriendRowSkeleton count={5} />
             ) : tab === "friends" ? (
               friends.length === 0 ? (
@@ -132,12 +131,12 @@ export default function FriendsPage() {
                   description="Discover people and send friend requests to connect"
                 />
               ) : (
-                <div className="friends-list-panel animate-fade-in sm:grid sm:grid-cols-2 sm:gap-3 sm:overflow-visible sm:rounded-none sm:border-0 sm:bg-transparent sm:shadow-none xl:grid-cols-3">
+                <div className="friends-list-panel animate-fade-in">
                   {friends.map((friend) => (
                     <Link
                       key={friend.id}
                       href={`/users/${friend.id}`}
-                      className="friend-row flex items-center gap-3 transition sm:card sm:gap-4 sm:border sm:p-4 sm:hover:shadow-md"
+                      className="friend-row flex items-center gap-3 transition md:gap-4"
                     >
                       <FriendAvatar
                         src={friend.profilePicture}
@@ -168,13 +167,13 @@ export default function FriendsPage() {
               received.length === 0 ? (
                 <EmptyState title="No pending requests" />
               ) : (
-                <div className="friends-request-panel sm:space-y-3 sm:overflow-visible sm:rounded-none sm:border-0 sm:bg-transparent sm:shadow-none">
+                <div className="friends-request-panel">
                   {received.map((req) => (
                     <div
                       key={req.id}
-                      className="request-row flex flex-col gap-2 sm:card sm:flex-row sm:items-center sm:gap-4 sm:border sm:p-4"
+                      className="request-row flex flex-col gap-2 md:flex-row md:items-center md:gap-4"
                     >
-                      <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
+                      <div className="flex min-w-0 flex-1 items-center gap-3 md:gap-4">
                         <FriendAvatar
                           src={req.sender?.profilePicture}
                           name={req.sender?.name ?? "User"}
@@ -188,18 +187,18 @@ export default function FriendsPage() {
                           </p>
                         </div>
                       </div>
-                      <div className="flex gap-2 sm:shrink-0">
+                      <div className="flex gap-2 md:shrink-0">
                         <button
                           type="button"
                           onClick={() => respond(req.id, "accept")}
-                          className="btn-primary flex-1 sm:flex-none"
+                          className="btn-primary flex-1 md:flex-none"
                         >
                           Accept
                         </button>
                         <button
                           type="button"
                           onClick={() => respond(req.id, "reject")}
-                          className="btn-secondary flex-1 sm:flex-none"
+                          className="btn-secondary flex-1 md:flex-none"
                         >
                           Decline
                         </button>
@@ -211,13 +210,13 @@ export default function FriendsPage() {
             ) : sent.length === 0 ? (
               <EmptyState title="No sent requests" />
             ) : (
-              <div className="friends-request-panel sm:space-y-3 sm:overflow-visible sm:rounded-none sm:border-0 sm:bg-transparent sm:shadow-none">
+              <div className="friends-request-panel">
                 {sent.map((req) => (
                   <div
                     key={req.id}
-                    className="request-row flex flex-col gap-2 sm:card sm:flex-row sm:items-center sm:gap-4 sm:border sm:p-4"
+                    className="request-row flex flex-col gap-2 md:flex-row md:items-center md:gap-4"
                   >
-                    <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
+                    <div className="flex min-w-0 flex-1 items-center gap-3 md:gap-4">
                       <FriendAvatar
                         src={req.receiver?.profilePicture}
                         name={req.receiver?.name ?? "User"}
@@ -232,7 +231,7 @@ export default function FriendsPage() {
                     <button
                       type="button"
                       onClick={() => cancelRequest(req.id)}
-                      className="btn-secondary w-full sm:ml-auto sm:w-auto"
+                      className="btn-secondary w-full md:ml-auto md:w-auto"
                     >
                       Cancel
                     </button>
@@ -240,9 +239,7 @@ export default function FriendsPage() {
                 ))}
               </div>
             )}
-          </div>
-        </div>
-      </div>
+      </SectionPage>
     </AppLayout>
   );
 }

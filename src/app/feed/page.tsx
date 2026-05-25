@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { AppLayout } from "@/components/AppLayout";
 import { CreatePost } from "@/components/CreatePost";
 import { PostCard } from "@/components/PostCard";
-import { PageHeader } from "@/components/PageHeader";
+import { SectionPage } from "@/components/SectionPage";
 import { EmptyState } from "@/components/EmptyState";
 import { FeedSkeleton, PostCardSkeleton } from "@/components/skeletons";
 import { queryKeys } from "@/lib/queryKeys";
@@ -111,56 +111,53 @@ export default function FeedPage() {
 
   return (
     <AppLayout>
-      <div className="page-shell">
-        <PageHeader
-          title="News Feed"
-          subtitle="Share updates and see what everyone is posting"
-          refreshing={isFetching && !isPending}
-        />
-        <div className="page-content">
-          <div className="content-feed space-y-4 sm:space-y-6">
-            <CreatePost onPostCreated={handlePostCreated} />
+      <SectionPage
+        title="News Feed"
+        subtitle="Share updates and see what everyone is posting"
+        refreshing={isFetching && !isPending}
+      >
+        <div className="section-stack">
+          <CreatePost onPostCreated={handlePostCreated} />
 
-            {isPending ? (
-              <FeedSkeleton count={2} />
-            ) : posts.length === 0 ? (
-              <EmptyState
-                title="No posts yet"
-                description="Be the first to share something with the community!"
-                icon={
-                  <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2" />
-                  </svg>
-                }
-              />
-            ) : (
-              <>
-                <div className="animate-fade-in space-y-4">
-                  {posts.map((post) => (
-                    <PostCard
-                      key={post.id}
-                      post={post}
-                      onUpdate={handlePostUpdate}
-                      onRemove={handlePostRemove}
-                      currentUserId={user?.id}
-                    />
-                  ))}
+          {isPending ? (
+            <FeedSkeleton count={2} />
+          ) : posts.length === 0 ? (
+            <EmptyState
+              title="No posts yet"
+              description="Be the first to share something with the community!"
+              icon={
+                <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2" />
+                </svg>
+              }
+            />
+          ) : (
+            <>
+              <div className="animate-fade-in section-stack">
+                {posts.map((post) => (
+                  <PostCard
+                    key={post.id}
+                    post={post}
+                    onUpdate={handlePostUpdate}
+                    onRemove={handlePostRemove}
+                    currentUserId={user?.id}
+                  />
+                ))}
+              </div>
+              {hasNextPage && (
+                <div ref={loadMoreRef} className="section-stack pb-4">
+                  {isFetchingNextPage && <PostCardSkeleton />}
+                  {!isFetchingNextPage && (
+                    <p className="py-2 text-center text-sm text-slate-400">
+                      Scroll for more posts
+                    </p>
+                  )}
                 </div>
-                {hasNextPage && (
-                  <div ref={loadMoreRef} className="space-y-4 pb-4">
-                    {isFetchingNextPage && <PostCardSkeleton />}
-                    {!isFetchingNextPage && (
-                      <p className="py-2 text-center text-sm text-slate-400">
-                        Scroll for more posts
-                      </p>
-                    )}
-                  </div>
-                )}
-              </>
-            )}
-          </div>
+              )}
+            </>
+          )}
         </div>
-      </div>
+      </SectionPage>
     </AppLayout>
   );
 }

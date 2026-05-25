@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
 import { AppLayout } from "@/components/AppLayout";
 import { Avatar } from "@/components/Avatar";
-import { PageHeader } from "@/components/PageHeader";
+import { SectionPage } from "@/components/SectionPage";
 import { SignOutButton } from "@/components/SignOutButton";
 import { DashboardSkeleton } from "@/components/skeletons";
 import { api } from "@/lib/api";
@@ -104,18 +104,15 @@ export default function DashboardPage() {
 
   return (
     <AppLayout>
-      <div className="page-shell">
-        <PageHeader
-          title="Your Profile"
-          subtitle="Update your personal information"
-          refreshing={profileRefreshing && !fetching}
-        />
-
-        <div className="page-content">
+      <SectionPage
+        title="Your Profile"
+        subtitle="Update your personal information"
+        refreshing={profileRefreshing && !fetching}
+      >
           {fetching && !profile ? (
             <DashboardSkeleton />
           ) : (
-            <div className="page-container mx-auto max-w-2xl space-y-4 md:space-y-5">
+            <div className="section-stack animate-fade-in">
               <div className="card flex animate-fade-in flex-col items-center text-center">
                 <Avatar
                   name={profile?.name || user?.name || "U"}
@@ -336,8 +333,7 @@ export default function DashboardPage() {
               <SignOutButton variant="card" />
             </div>
           )}
-        </div>
-      </div>
+      </SectionPage>
     </AppLayout>
   );
 }

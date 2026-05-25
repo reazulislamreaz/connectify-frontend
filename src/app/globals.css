@@ -46,19 +46,38 @@
   }
 
   .page-container {
-    @apply mx-auto w-full max-w-app;
+    @apply w-full;
   }
 
-  .content-narrow {
-    @apply mx-auto w-full max-w-2xl;
+  /* Unified body width & spacing for every main section */
+  .content-section {
+    @apply mx-auto w-full space-y-4 md:space-y-5 lg:space-y-6;
   }
 
-  .content-feed {
-    @apply mx-auto w-full max-w-2xl lg:max-w-3xl;
-  }
-
+  .content-narrow,
+  .content-feed,
   .content-profile {
-    @apply mx-auto w-full max-w-lg lg:max-w-2xl;
+    @apply content-section;
+  }
+
+  .section-toolbar {
+    @apply rounded-2xl border border-surface-border bg-white p-4 shadow-card md:p-5;
+  }
+
+  .section-panel {
+    @apply overflow-hidden rounded-2xl border border-surface-border bg-white shadow-card;
+  }
+
+  .section-grid {
+    @apply grid gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+  }
+
+  .section-list-grid {
+    @apply grid gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3;
+  }
+
+  .section-stack {
+    @apply flex w-full flex-col gap-4 md:gap-5;
   }
 
   .card {
@@ -181,6 +200,46 @@
 
     .friends-page .request-row:last-child {
       @apply border-b-0;
+    }
+
+    .friends-page .friends-tabs-wrap {
+      @apply border-0 bg-transparent p-0 shadow-none;
+    }
+  }
+
+  /* Tablet & desktop — shared section polish */
+  @media (min-width: 768px) {
+    .friends-page .friends-tabs {
+      @apply flex flex-wrap gap-2;
+    }
+
+    .friends-page .friends-tabs-wrap {
+      @apply section-toolbar;
+    }
+
+    .friends-page .friends-list-panel,
+    .friends-page .friends-request-panel {
+      @apply section-panel;
+    }
+
+    .friends-page .friends-list-panel {
+      @apply section-grid p-4 md:p-5 lg:p-6;
+    }
+
+    .friends-page .friend-row {
+      @apply min-h-0 rounded-2xl border border-surface-border px-4 py-4 hover:shadow-md;
+    }
+
+    .friends-page .friend-row:last-child {
+      @apply border-b;
+    }
+
+    .friends-page .friends-request-panel {
+      @apply space-y-4 p-4 md:space-y-5 md:p-5 lg:p-6;
+    }
+
+    .friends-page .request-row {
+      @apply rounded-2xl border border-surface-border px-4 py-4;
     }
   }
 }

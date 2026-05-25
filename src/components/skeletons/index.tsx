@@ -82,7 +82,7 @@ export function UserCardSkeleton() {
 
 export function UsersGridSkeleton({ count = 6 }: { count?: number }) {
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="section-grid">
       {Array.from({ length: count }).map((_, i) => (
         <UserCardSkeleton key={i} />
       ))}
@@ -92,7 +92,9 @@ export function UsersGridSkeleton({ count = 6 }: { count?: number }) {
 
 export function ProfileSkeleton() {
   return (
-    <div className="page-container mx-auto max-w-lg space-y-4 pb-6">
+    <div className="content-section pb-6">
+      <div className="md:grid md:grid-cols-[minmax(280px,360px)_1fr] md:gap-6 lg:gap-8">
+      <div className="space-y-4">
       <div className="card flex flex-col items-center py-8">
         <SkeletonCircle size="h-24 w-24" />
         <Skeleton className="mt-4 h-6 w-40" />
@@ -101,6 +103,7 @@ export function ProfileSkeleton() {
       </div>
       <div className="card space-y-3">
         <Skeleton className="h-10 w-full rounded-xl" />
+      </div>
       </div>
       <div className="card space-y-4">
         <Skeleton className="h-4 w-16" />
@@ -114,17 +117,18 @@ export function ProfileSkeleton() {
           </div>
         ))}
       </div>
+      </div>
     </div>
   );
 }
 
 export function FriendRowSkeleton({ count = 5 }: { count?: number }) {
   return (
-    <div className="friends-list-panel sm:grid sm:grid-cols-2 sm:gap-3 sm:overflow-visible sm:rounded-none sm:border-0 sm:bg-transparent sm:shadow-none xl:grid-cols-3">
+    <div className="friends-list-panel">
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="friend-row flex items-center gap-3 sm:card sm:gap-4 sm:p-4"
+          className="friend-row flex items-center gap-3 md:gap-4 md:p-4"
         >
           <SkeletonCircle size="h-14 w-14" />
           <div className="min-w-0 flex-1 space-y-2">
@@ -140,7 +144,7 @@ export function FriendRowSkeleton({ count = 5 }: { count?: number }) {
 
 export function DashboardSkeleton() {
   return (
-    <div className="page-container mx-auto max-w-2xl space-y-4 md:space-y-5">
+    <div className="section-stack">
       <div className="card flex flex-col items-center py-8">
         <SkeletonCircle size="h-24 w-24" />
         <Skeleton className="mt-4 h-6 w-40" />
