@@ -48,7 +48,7 @@ export function PostCardSkeleton() {
         <div className="h-10 w-10 shrink-0 rounded-full bg-slate-200" />
         <div className="h-4 w-32 rounded bg-slate-200" />
       </div>
-      <div className="h-24 w-full rounded-xl bg-slate-200" />
+      <Skeleton className="min-h-64 w-full rounded-xl" />
     </div>
   );
 }

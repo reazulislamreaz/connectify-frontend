@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Avatar } from "./Avatar";
 import { PrefetchLink } from "./PrefetchLink";
 import { CommentListSkeleton } from "@/components/skeletons";
+import { PostImage } from "./PostImage";
 import { EditPostModal } from "./EditPostModal";
 import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
@@ -270,13 +271,7 @@ export function PostCard({ post, onUpdate, onRemove, currentUserId }: PostCardPr
       )}
 
       {post.imageUrl && (
-        <div className="border-y border-surface-border">
-          <img
-            src={post.imageUrl}
-            alt="Post"
-            className="max-h-[28rem] w-full object-cover"
-          />
-        </div>
+        <PostImage key={post.imageUrl} src={post.imageUrl} alt="Post" />
       )}
 
       <div className="flex items-center gap-1 border-t border-surface-border px-2 py-1">
