@@ -152,5 +152,43 @@
       padding-left: max(0.125rem, env(safe-area-inset-left, 0px));
       padding-right: max(0.125rem, env(safe-area-inset-right, 0px));
     }
+
+    /* Friends page — tighter list rows on small screens */
+    .friends-page .page-header {
+      @apply px-3 py-2.5;
+    }
+
+    .friends-page .page-header h1 {
+      @apply text-base;
+    }
+
+    .friends-page .page-header p {
+      @apply mt-0 text-xs;
+    }
+
+    .friends-page .page-content {
+      @apply p-3;
+    }
+
+    .friends-page .tab-pill {
+      @apply rounded-lg px-2.5 py-1.5 text-xs;
+    }
+
+    .friends-page .friend-card {
+      @apply gap-2.5 rounded-xl p-2.5 shadow-sm;
+    }
+
+    .friends-page .friend-card .btn-primary {
+      @apply !px-2.5 !py-1.5 text-xs;
+    }
+
+    .friends-page .request-card {
+      @apply gap-3 rounded-xl p-2.5;
+    }
+
+    .friends-page .request-card .btn-primary,
+    .friends-page .request-card .btn-secondary {
+      @apply !px-3 !py-1.5 text-xs;
+    }
   }
 }

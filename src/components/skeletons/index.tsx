@@ -120,15 +120,18 @@ export function ProfileSkeleton() {
 
 export function FriendRowSkeleton({ count = 4 }: { count?: number }) {
   return (
-    <div className="space-y-3">
+    <div className="space-y-2 sm:space-y-3">
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="card flex items-center gap-4 p-4">
-          <SkeletonCircle size="h-14 w-14" />
-          <div className="min-w-0 flex-1 space-y-2">
-            <Skeleton className="h-4 w-36" />
-            <Skeleton className="h-3 w-44" />
+        <div
+          key={i}
+          className="friend-card card flex items-center gap-3 p-3 sm:gap-4 sm:p-4"
+        >
+          <SkeletonCircle size="h-10 w-10 sm:h-14 sm:w-14" />
+          <div className="min-w-0 flex-1 space-y-1.5 sm:space-y-2">
+            <Skeleton className="h-3.5 w-32 sm:h-4 sm:w-36" />
+            <Skeleton className="h-3 w-40 sm:w-44" />
           </div>
-          <Skeleton className="h-9 w-24 rounded-xl" />
+          <Skeleton className="h-8 w-20 rounded-xl sm:h-9 sm:w-24" />
         </div>
       ))}
     </div>

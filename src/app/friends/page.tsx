@@ -81,7 +81,7 @@ export default function FriendsPage() {
 
   return (
     <AppLayout>
-      <div className="page-shell">
+      <div className="page-shell friends-page">
         <PageHeader
           title="Friends"
           subtitle="Manage your connections and requests"
@@ -89,8 +89,8 @@ export default function FriendsPage() {
         />
 
         <div className="page-content">
-          <div className="page-container space-y-5 lg:space-y-6">
-            <div className="tab-pills">
+          <div className="page-container space-y-3 sm:space-y-5 lg:space-y-6">
+            <div className="tab-pills gap-1.5 sm:gap-2">
               {tabs.map((t) => (
                 <button
                   key={t.key}
@@ -121,23 +121,32 @@ export default function FriendsPage() {
                   description="Discover people and send friend requests to connect"
                 />
               ) : (
-                <div className="grid animate-fade-in gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="grid animate-fade-in gap-2 sm:grid-cols-2 sm:gap-3 xl:grid-cols-3">
                   {friends.map((friend) => (
                     <Link
                       key={friend.id}
                       href={`/users/${friend.id}`}
-                      className="card flex items-center gap-4 p-4 transition hover:shadow-md"
+                      className="friend-card card flex items-center gap-3 p-3 transition hover:shadow-md sm:gap-4 sm:p-4"
                     >
-                      <Avatar
-                        src={friend.profilePicture}
-                        name={friend.name}
-                        size="lg"
-                      />
+                      <span className="shrink-0 sm:hidden">
+                        <Avatar
+                          src={friend.profilePicture}
+                          name={friend.name}
+                          size="md"
+                        />
+                      </span>
+                      <span className="hidden shrink-0 sm:inline-flex">
+                        <Avatar
+                          src={friend.profilePicture}
+                          name={friend.name}
+                          size="lg"
+                        />
+                      </span>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate font-semibold text-slate-900">
+                        <p className="truncate text-sm font-semibold text-slate-900 sm:text-base">
                           {friend.name}
                         </p>
-                        <p className="truncate text-sm text-slate-500">
+                        <p className="truncate text-xs text-slate-500 sm:text-sm">
                           {friend.email}
                         </p>
                       </div>
@@ -146,7 +155,7 @@ export default function FriendsPage() {
                         prefetchUserId={friend.id}
                         prefetchChat
                         onClick={(e) => e.stopPropagation()}
-                        className="btn-primary shrink-0 !px-4 !py-2 text-sm"
+                        className="btn-primary shrink-0 !px-3 !py-1.5 text-xs sm:!px-4 sm:!py-2 sm:text-sm"
                       >
                         Message
                       </PrefetchLink>
@@ -158,23 +167,32 @@ export default function FriendsPage() {
               received.length === 0 ? (
                 <EmptyState title="No pending requests" />
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-2 sm:space-y-3">
                   {received.map((req) => (
                     <div
                       key={req.id}
-                      className="card flex flex-col gap-4 p-4 sm:flex-row sm:items-center"
+                      className="request-card card flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:gap-4 sm:p-4"
                     >
-                      <div className="flex min-w-0 flex-1 items-center gap-4">
-                        <Avatar
-                          src={req.sender?.profilePicture}
-                          name={req.sender?.name ?? "User"}
-                          size="lg"
-                        />
+                      <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
+                        <span className="shrink-0 sm:hidden">
+                          <Avatar
+                            src={req.sender?.profilePicture}
+                            name={req.sender?.name ?? "User"}
+                            size="md"
+                          />
+                        </span>
+                        <span className="hidden shrink-0 sm:inline-flex">
+                          <Avatar
+                            src={req.sender?.profilePicture}
+                            name={req.sender?.name ?? "User"}
+                            size="lg"
+                          />
+                        </span>
                         <div className="min-w-0">
-                          <p className="truncate font-semibold">
+                          <p className="truncate text-sm font-semibold sm:text-base">
                             {req.sender?.name ?? "Unknown"}
                           </p>
-                          <p className="truncate text-sm text-slate-500">
+                          <p className="truncate text-xs text-slate-500 sm:text-sm">
                             {req.sender?.email}
                           </p>
                         </div>
@@ -200,29 +218,40 @@ export default function FriendsPage() {
             ) : sent.length === 0 ? (
               <EmptyState title="No sent requests" />
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-3">
                 {sent.map((req) => (
                   <div
                     key={req.id}
-                    className="card flex flex-col gap-4 p-4 sm:flex-row sm:items-center"
+                    className="request-card card flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:gap-4 sm:p-4"
                   >
-                    <div className="flex min-w-0 flex-1 items-center gap-4">
-                      <Avatar
-                        src={req.receiver?.profilePicture}
-                        name={req.receiver?.name ?? "User"}
-                        size="lg"
-                      />
+                    <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
+                      <span className="shrink-0 sm:hidden">
+                        <Avatar
+                          src={req.receiver?.profilePicture}
+                          name={req.receiver?.name ?? "User"}
+                          size="md"
+                        />
+                      </span>
+                      <span className="hidden shrink-0 sm:inline-flex">
+                        <Avatar
+                          src={req.receiver?.profilePicture}
+                          name={req.receiver?.name ?? "User"}
+                          size="lg"
+                        />
+                      </span>
                       <div className="min-w-0">
-                        <p className="truncate font-semibold">
+                        <p className="truncate text-sm font-semibold sm:text-base">
                           {req.receiver?.name ?? "Unknown"}
                         </p>
-                        <p className="text-sm text-amber-600">Pending</p>
+                        <p className="text-xs text-amber-600 sm:text-sm">
+                          Pending
+                        </p>
                       </div>
                     </div>
                     <button
                       type="button"
                       onClick={() => cancelRequest(req.id)}
-                      className="btn-secondary w-full sm:w-auto"
+                      className="btn-secondary w-full text-xs sm:w-auto sm:text-sm"
                     >
                       Cancel request
                     </button>
