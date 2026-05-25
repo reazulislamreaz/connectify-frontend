@@ -118,20 +118,20 @@ export function ProfileSkeleton() {
   );
 }
 
-export function FriendRowSkeleton({ count = 4 }: { count?: number }) {
+export function FriendRowSkeleton({ count = 5 }: { count?: number }) {
   return (
-    <div className="space-y-2 sm:space-y-3">
+    <div className="friends-list-panel sm:grid sm:grid-cols-2 sm:gap-3 sm:overflow-visible sm:rounded-none sm:border-0 sm:bg-transparent sm:shadow-none xl:grid-cols-3">
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="friend-card card flex items-center gap-3 p-3 sm:gap-4 sm:p-4"
+          className="friend-row flex items-center gap-2.5 px-3 py-2 sm:card sm:gap-4 sm:p-4"
         >
-          <SkeletonCircle size="h-10 w-10 sm:h-14 sm:w-14" />
+          <SkeletonCircle size="h-8 w-8 sm:h-14 sm:w-14" />
           <div className="min-w-0 flex-1 space-y-1.5 sm:space-y-2">
-            <Skeleton className="h-3.5 w-32 sm:h-4 sm:w-36" />
-            <Skeleton className="h-3 w-40 sm:w-44" />
+            <Skeleton className="h-3.5 w-28 sm:h-4 sm:w-36" />
+            <Skeleton className="hidden h-3 w-40 sm:block sm:w-44" />
           </div>
-          <Skeleton className="h-8 w-20 rounded-xl sm:h-9 sm:w-24" />
+          <Skeleton className="h-8 w-8 rounded-full sm:h-9 sm:w-24 sm:rounded-xl" />
         </div>
       ))}
     </div>
