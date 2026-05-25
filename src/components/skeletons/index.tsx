@@ -82,7 +82,7 @@ export function UserCardSkeleton() {
 
 export function UsersGridSkeleton({ count = 6 }: { count?: number }) {
   return (
-    <div className="section-grid">
+    <div className="section-grid users-page-grid">
       {Array.from({ length: count }).map((_, i) => (
         <UserCardSkeleton key={i} />
       ))}

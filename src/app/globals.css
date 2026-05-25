@@ -250,7 +250,11 @@
     }
 
     .desktop-layout .page-header {
-      @apply rounded-2xl border border-surface-border bg-white px-5 py-4 shadow-card;
+      @apply sticky top-0 z-20 rounded-2xl border border-surface-border bg-white/95 px-5 py-4 shadow-card backdrop-blur-md transition-transform duration-300 ease-out;
+    }
+
+    .desktop-layout.header-scroll-hidden .page-header {
+      @apply pointer-events-none -translate-y-[calc(100%+1rem)];
     }
 
     .desktop-layout .page-content {
@@ -301,7 +305,7 @@
     }
 
     .desktop-layout .users-page-grid {
-      @apply grid-cols-1 gap-4;
+      @apply grid-cols-2 gap-3;
     }
   }
 }
