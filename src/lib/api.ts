@@ -35,7 +35,7 @@ interface RequestOptions extends RequestInit {
   timeoutMs?: number;
 }
 
-const DEFAULT_TIMEOUT_MS = 15_000;
+const DEFAULT_TIMEOUT_MS = 25_000;
 
 export async function api<T>(
   endpoint: string,
@@ -45,6 +45,7 @@ export async function api<T>(
     auth = true,
     headers: customHeaders,
     timeoutMs = DEFAULT_TIMEOUT_MS,
+    signal: externalSignal,
     ...rest
   } = options;
 
@@ -65,6 +66,15 @@ export async function api<T>(
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
+  const onExternalAbort = () => controller.abort();
+  if (externalSignal) {
+    if (externalSignal.aborted) {
+      clearTimeout(timeoutId);
+      throw new DOMException("The operation was aborted.", "AbortError");
+    }
+    externalSignal.addEventListener("abort", onExternalAbort, { once: true });
+  }
+
   let response: Response;
   try {
     response = await fetch(`${getApiBaseUrl()}${endpoint}`, {
@@ -73,12 +83,18 @@ export async function api<T>(
       signal: controller.signal,
     });
   } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") {
+      if (externalSignal?.aborted) {
+        throw err;
+      }
+      throw new Error(
+        process.env.NODE_ENV === "development"
+          ? "Cannot reach API: Request timed out"
+          : "Request timed out. The server may be slow — try again.",
+      );
+    }
     const detail =
-      err instanceof Error && err.name === "AbortError"
-        ? "Request timed out"
-        : err instanceof Error
-          ? err.message
-          : "Network error";
+      err instanceof Error ? err.message : "Network error";
     throw new Error(
       process.env.NODE_ENV === "development"
         ? `Cannot reach API: ${detail}`
@@ -86,6 +102,7 @@ export async function api<T>(
     );
   } finally {
     clearTimeout(timeoutId);
+    externalSignal?.removeEventListener("abort", onExternalAbort);
   }
 
   let data: { message?: string; success?: boolean };

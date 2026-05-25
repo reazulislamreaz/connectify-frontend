@@ -11,6 +11,7 @@ import { ProfileSkeleton } from "@/components/skeletons";
 import { api } from "@/lib/api";
 import { invalidateSocial } from "@/lib/invalidateCache";
 import { useUserQuery } from "@/hooks/queries";
+import { isAbortError } from "@/lib/apiErrors";
 import { toastError, toastSuccess } from "@/lib/toast";
 import { formatDateOfBirth, formatLastSeen, getAge } from "@/lib/userFormat";
 import { useAuth } from "@/context/AuthContext";
@@ -26,10 +27,9 @@ export default function UserDetailPage() {
   const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
-    if (error) {
-      toastError(error instanceof Error ? error.message : "User not found");
-      router.push("/users");
-    }
+    if (!error || isAbortError(error)) return;
+    toastError(error instanceof Error ? error.message : "User not found");
+    router.push("/users");
   }, [error, router]);
 
   const sendRequest = async () => {

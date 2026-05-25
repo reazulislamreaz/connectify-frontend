@@ -1,4 +1,11 @@
 import { QueryClient } from "@tanstack/react-query";
+import { isAbortError, isRetryableApiError } from "@/lib/apiErrors";
+
+function shouldRetryQuery(failureCount: number, error: unknown): boolean {
+  if (isAbortError(error)) return false;
+  if (isRetryableApiError(error)) return failureCount < 2;
+  return failureCount < 1;
+}
 
 function makeQueryClient() {
   return new QueryClient({
@@ -8,7 +15,7 @@ function makeQueryClient() {
         gcTime: 15 * 60 * 1000,
         refetchOnWindowFocus: false,
         refetchOnReconnect: true,
-        retry: 1,
+        retry: shouldRetryQuery,
       },
     },
   });

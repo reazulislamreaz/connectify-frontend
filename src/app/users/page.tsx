@@ -10,6 +10,7 @@ import { UserCard } from "@/components/UserCard";
 import { api } from "@/lib/api";
 import { invalidateSocial } from "@/lib/invalidateCache";
 import { useUsersQuery } from "@/hooks/queries";
+import { isAbortError } from "@/lib/apiErrors";
 import { toastError, toastSuccess } from "@/lib/toast";
 
 export default function UsersPage() {
@@ -25,19 +26,18 @@ export default function UsersPage() {
   }, [search]);
 
   const {
-    data: users = [],
+    data,
     isPending,
     isFetching,
+    isError,
+    isFetched,
     error,
+    refetch,
   } = useUsersQuery(debouncedSearch);
 
-  useEffect(() => {
-    if (error) {
-      toastError(
-        error instanceof Error ? error.message : "Failed to load users",
-      );
-    }
-  }, [error]);
+  const users = data ?? [];
+  const showLoadError =
+    isError && isFetched && !isFetching && error && !isAbortError(error);
 
   const sendRequest = async (receiverId: string) => {
     setSendingTo(receiverId);
@@ -103,16 +103,40 @@ export default function UsersPage() {
           </div>
         </div>
 
-        {!showSkeleton && users.length > 0 && (
-              <p className="text-sm text-slate-500">
-                {users.length} {users.length === 1 ? "person" : "people"} found
-                {search ? ` for "${search}"` : ""}
-              </p>
-            )}
+        {showLoadError && (
+          <div
+            className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-4 text-sm text-rose-800"
+            role="alert"
+          >
+            <p className="font-medium">
+              {error instanceof Error
+                ? error.message
+                : "Could not load people right now."}
+            </p>
+            <p className="mt-1 text-rose-700/90">
+              This is usually a temporary network or server issue — not an empty
+              search result.
+            </p>
+            <button
+              type="button"
+              onClick={() => void refetch()}
+              className="btn-primary mt-3 !py-2 text-sm"
+            >
+              Try again
+            </button>
+          </div>
+        )}
+
+        {!showSkeleton && !showLoadError && users.length > 0 && (
+          <p className="text-sm text-slate-500">
+            {users.length} {users.length === 1 ? "person" : "people"} found
+            {search ? ` for "${search}"` : ""}
+          </p>
+        )}
 
         {showSkeleton ? (
           <UsersGridSkeleton count={6} />
-        ) : users.length === 0 ? (
+        ) : showLoadError ? null : users.length === 0 ? (
               <EmptyState
                 title="No users found"
                 description={

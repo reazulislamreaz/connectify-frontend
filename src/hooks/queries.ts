@@ -68,17 +68,19 @@ export function useChatsQuery(enabled: boolean) {
 export function useUsersQuery(search: string) {
   return useQuery({
     queryKey: queryKeys.users(search),
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const params = new URLSearchParams();
       if (search) params.set("search", search);
       params.set("limit", "30");
       const res = await api<ApiResponse<{ users: User[] }>>(
         `/users?${params.toString()}`,
+        { signal },
       );
       return res.data.users;
     },
     staleTime: 2 * 60 * 1000,
-    placeholderData: (previousData) => previousData,
+    placeholderData: (previousData, previousQuery) =>
+      previousQuery?.queryKey[1] === search ? previousData : undefined,
   });
 }
 
