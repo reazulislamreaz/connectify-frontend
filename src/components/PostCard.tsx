@@ -3,6 +3,7 @@
 import { FormEvent, useCallback, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Avatar } from "./Avatar";
+import { PrefetchLink } from "./PrefetchLink";
 import { CommentListSkeleton } from "@/components/skeletons";
 import { EditPostModal } from "./EditPostModal";
 import { api } from "@/lib/api";
@@ -200,11 +201,25 @@ export function PostCard({ post, onUpdate, onRemove, currentUserId }: PostCardPr
   return (
     <article className="card overflow-hidden !p-0">
       <div className="flex items-center gap-3 p-4 pb-0">
-        <Avatar name={post.author.name} src={post.author.profilePicture} size="md" />
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-semibold text-slate-900">{post.author.name}</p>
-          <p className="text-xs text-slate-400">{timeAgo(post.createdAt)}</p>
-        </div>
+        <PrefetchLink
+          href={`/users/${post.author.id}`}
+          prefetchUserId={post.author.id}
+          className="flex min-w-0 flex-1 items-center gap-3 rounded-xl transition hover:bg-slate-50 active:bg-slate-100"
+        >
+          <span className="shrink-0">
+            <Avatar
+              name={post.author.name}
+              src={post.author.profilePicture}
+              size="md"
+            />
+          </span>
+          <div className="min-w-0 flex-1 text-left">
+            <p className="truncate font-semibold text-slate-900 transition-colors hover:text-brand-700">
+              {post.author.name}
+            </p>
+            <p className="text-xs text-slate-400">{timeAgo(post.createdAt)}</p>
+          </div>
+        </PrefetchLink>
         {isOwner && (
           <div className="relative">
             <button
