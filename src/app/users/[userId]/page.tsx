@@ -114,7 +114,7 @@ export default function UserDetailPage() {
             <ProfileSkeleton />
           ) : !profile ? null : (
             <div className="content-section animate-fade-in pb-6">
-              <div className="md:grid md:grid-cols-[minmax(280px,360px)_1fr] md:items-start md:gap-6 lg:gap-8">
+              <div className="space-y-4 md:grid md:grid-cols-[minmax(280px,360px)_1fr] md:items-start md:gap-6 md:space-y-0 lg:gap-8">
               <div className="space-y-4">
               <div className="card flex flex-col items-center text-center">
                 <Avatar

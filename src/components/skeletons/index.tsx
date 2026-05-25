@@ -93,7 +93,7 @@ export function UsersGridSkeleton({ count = 6 }: { count?: number }) {
 export function ProfileSkeleton() {
   return (
     <div className="content-section pb-6">
-      <div className="md:grid md:grid-cols-[minmax(280px,360px)_1fr] md:gap-6 lg:gap-8">
+      <div className="space-y-4 md:grid md:grid-cols-[minmax(280px,360px)_1fr] md:gap-6 md:space-y-0 lg:gap-8">
       <div className="space-y-4">
       <div className="card flex flex-col items-center py-8">
         <SkeletonCircle size="h-24 w-24" />
