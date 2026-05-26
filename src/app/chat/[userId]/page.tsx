@@ -80,7 +80,7 @@ export default function ChatPage() {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-
+// 
   const updateMessagesCache = useCallback(
     (updater: (old: MessagesInfiniteData | undefined) => MessagesInfiniteData | undefined) => {
       queryClient.setQueryData(queryKeys.messages(otherUserId), updater);
