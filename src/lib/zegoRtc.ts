@@ -61,7 +61,7 @@ function waitForPublishReady(
     zg.on("publisherStateUpdate", onPublish);
   });
 }
-
+// TODO: test this function
 export async function joinAudioRoom(params: {
   appId: number;
   serverUrl: string;
