@@ -2,7 +2,6 @@ export type CallPhase =
   | "idle"
   | "outgoing"
   | "incoming"
-  | "joinAudio"
   | "connecting"
   | "active"
   | "ending";

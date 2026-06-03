@@ -52,7 +52,7 @@ function waitForPublishReady(
         zg.off("publisherStateUpdate", onPublish);
         const hint =
           result.errorCode === 1103044
-            ? "Audio stream error — tap Join audio after the call is answered"
+            ? "Audio stream error — check microphone permission and try again"
             : result.extendedData || `Publish failed (${result.errorCode})`;
         reject(new Error(hint));
       }
@@ -61,7 +61,6 @@ function waitForPublishReady(
     zg.on("publisherStateUpdate", onPublish);
   });
 }
-// TODO: test this function
 export async function joinAudioRoom(params: {
   appId: number;
   serverUrl: string;
@@ -176,7 +175,7 @@ export async function joinAudioRoom(params: {
     await leaveAudioRoom();
     if (err instanceof Error && /permission|notallowed|denied/i.test(err.message)) {
       throw new Error(
-        "Microphone blocked — allow mic access in the browser, then tap Join audio",
+        "Microphone blocked — allow mic access in the browser and try again",
       );
     }
     throw new Error(formatZegoError(err));

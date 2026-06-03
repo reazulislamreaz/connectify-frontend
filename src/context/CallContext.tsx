@@ -41,7 +41,6 @@ interface CallContextType {
   muted: boolean;
   startCall: (calleeId: string, calleeName: string) => void;
   acceptCall: () => void;
-  joinCallAudio: () => void;
   rejectCall: () => void;
   cancelCall: () => void;
   endCall: () => void;
@@ -199,30 +198,17 @@ export function CallProvider({ children }: { children: ReactNode }) {
         setPhase("active");
       } catch (err) {
         await leaveAudioRoom();
-        if (call.isCaller) {
-          setPhase("joinAudio");
-          toastError(
-            err instanceof Error ? err.message : "Could not connect audio call",
-          );
-        } else {
-          resetCallState();
-          getSocket().emit("call:end", { callId: call.callId });
-          toastError(
-            err instanceof Error ? err.message : "Could not connect audio call",
-          );
-        }
+        resetCallState();
+        getSocket().emit("call:end", { callId: call.callId });
+        toastError(
+          err instanceof Error ? err.message : "Could not connect audio call",
+        );
       } finally {
         zegoConnectInFlightRef.current = false;
       }
     },
     [user, fetchToken, getZegoConfig, resetCallState],
   );
-
-  const joinCallAudio = useCallback(() => {
-    const call = activeCallRef.current;
-    if (!call || phaseRef.current !== "joinAudio") return;
-    void connectZego(call);
-  }, [connectZego]);
 
   const endCall = useCallback(() => {
     const call = activeCallRef.current;
@@ -260,17 +246,14 @@ export function CallProvider({ children }: { children: ReactNode }) {
       setPhase("incoming");
     };
 
-    const onAccepted = (payload: { callId: string; roomId: string }) => {
+    const onAccepted = async (payload: { callId: string; roomId: string }) => {
       const current = activeCallRef.current;
       if (!current || current.callId !== payload.callId) return;
 
       const updated = { ...current, roomId: payload.roomId };
       setActiveCall(updated);
       activeCallRef.current = updated;
-
-      // Caller must tap to join (browser mic needs a fresh user gesture)
-      setPhase("joinAudio");
-      toastSuccess("Call answered — tap Join audio");
+      await connectZego(updated);
     };
 
     const onEnded = (payload: { callId: string; reason?: string }) => {
@@ -419,7 +402,6 @@ export function CallProvider({ children }: { children: ReactNode }) {
         muted,
         startCall,
         acceptCall,
-        joinCallAudio,
         rejectCall,
         cancelCall,
         endCall,
