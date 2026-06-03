@@ -128,14 +128,45 @@ function watchPage(page, label) {
   return logs;
 }
 
-async function injectAuth(page, token) {
-  await page.goto(APP, { waitUntil: "domcontentloaded" });
-  await page.evaluate((t) => localStorage.setItem("token", t), token);
-  await page.goto(`${APP}/dashboard`, { waitUntil: "networkidle", timeout: 60_000 });
-  if (page.url().includes("/login")) {
-    throw new Error("Token auth failed — still on login after /dashboard");
+/**
+ * Sign in through the UI so AuthContext gets user state from /auth/login
+ * (injecting localStorage alone races the 10s /auth/me timeout on slow VPS).
+ */
+async function loginSession(page, { email, password, token }, label = "user") {
+  const maxAttempts = 3;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    await page.addInitScript((t) => localStorage.setItem("token", t), token);
+
+    await page.goto(`${APP}/login`, {
+      waitUntil: "domcontentloaded",
+      timeout: 60_000,
+    });
+    await page.locator('input[type="email"]').fill(email);
+    await page.locator('input[type="password"]').fill(password);
+    await page.getByRole("button", { name: "Sign in" }).click();
+
+    try {
+      await page.waitForURL(/\/dashboard/, { timeout: API_TIMEOUT_MS });
+      await page.waitForTimeout(1500);
+      return;
+    } catch {
+      if (attempt === maxAttempts) {
+        const hint = await page
+          .locator("body")
+          .innerText()
+          .then((t) => t.replace(/\s+/g, " ").slice(0, 250))
+          .catch(() => "");
+        throw new Error(
+          `Login failed for ${label} (stuck at ${page.url()}). ${hint || "Check Vercel BACKEND_PROXY_URL and API health."}`,
+        );
+      }
+      console.warn(
+        `Login attempt ${attempt}/${maxAttempts} for ${label} timed out — retrying…`,
+      );
+      await page.waitForTimeout(3000 * attempt);
+    }
   }
-  await page.waitForTimeout(2000);
 }
 
 async function run() {
@@ -165,13 +196,28 @@ async function run() {
   const logsA = watchPage(pageA, "A");
   const logsB = watchPage(pageB, "B");
 
-  await injectAuth(pageA, userA.token);
-  await injectAuth(pageB, userB.token);
+  console.log("Logging in callee via UI…");
+  await loginSession(pageB, userB, "callee");
+  console.log("Logging in caller via UI…");
+  await loginSession(pageA, userA, "caller");
 
-  await pageA.goto(`${APP}/chat/${userB.user.id}`, { waitUntil: "networkidle", timeout: 60_000 });
-  await pageB.goto(`${APP}/chat/${userA.user.id}`, { waitUntil: "networkidle", timeout: 60_000 });
+  if (pageB.url().includes("/login") || pageA.url().includes("/login")) {
+    throw new Error("A test user is still on /login — API or Vercel proxy too slow");
+  }
 
-  await pageA.waitForTimeout(5000);
+  // Callee chat first so socket is up before the caller rings
+  await pageB.goto(`${APP}/chat/${userA.user.id}`, {
+    waitUntil: "domcontentloaded",
+    timeout: 60_000,
+  });
+  await pageA.goto(`${APP}/chat/${userB.user.id}`, {
+    waitUntil: "domcontentloaded",
+    timeout: 60_000,
+  });
+
+  console.log("Waiting for sockets to connect…");
+  await pageB.waitForTimeout(6000);
+  await pageA.waitForTimeout(3000);
 
   const urlA = pageA.url();
   const titleA = await pageA.title();
@@ -190,7 +236,7 @@ async function run() {
   console.log("Caller: clicked Voice call");
 
   const acceptBtn = pageB.getByRole("button", { name: "Accept" });
-  await acceptBtn.waitFor({ state: "visible", timeout: 20_000 });
+  await acceptBtn.waitFor({ state: "visible", timeout: 45_000 });
   await acceptBtn.click();
   console.log("Callee: clicked Accept");
 

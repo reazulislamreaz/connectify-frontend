@@ -54,13 +54,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!token) return;
 
     let cancelled = false;
+    // Slow VPS/API: do not clear the token on timeout — only stop the loading UI.
+    // refreshUser() still finishes or fails and handles invalid sessions.
     const timeoutId = window.setTimeout(() => {
       if (cancelled) return;
-      clearToken();
-      setUser(null);
-      disconnectSocket();
       setLoading(false);
-    }, 10_000);
+    }, 30_000);
 
     refreshUser().finally(() => {
       if (cancelled) return;

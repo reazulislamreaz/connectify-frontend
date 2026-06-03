@@ -23,7 +23,8 @@ export function ActiveCallBar() {
           ? "On call"
           : "Ending…";
 
-  const onHangUp = phase === "outgoing" ? cancelCall : endCall;
+  const onHangUp =
+    activeCall.isCaller && phase === "outgoing" ? cancelCall : endCall;
 
   return (
     <div className="fixed bottom-[5.25rem] left-1/2 z-[90] w-[min(100vw-1.5rem,24rem)] -translate-x-1/2 rounded-2xl border border-brand-200 bg-white px-4 py-3 shadow-lg sm:bottom-6">

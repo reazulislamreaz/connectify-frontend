@@ -168,14 +168,22 @@ export function CallProvider({ children }: { children: ReactNode }) {
 
       setPhase("connecting");
       try {
-        const tokenData = await fetchToken(call.roomId);
-        const config = await getZegoConfig();
+        const [tokenData, config] = await Promise.all([
+          fetchToken(call.roomId),
+          getZegoConfig(),
+        ]);
         const appId = tokenData.appId || config.appId;
         const serverUrl = tokenData.serverUrl || config.serverUrl;
 
         if (!appId) {
           throw new Error(
             "Zego is not configured on the server (ZEGOCLOUD_APP_ID). Update VPS .env and restart.",
+          );
+        }
+
+        if (tokenData.userId && tokenData.userId !== user.id) {
+          throw new Error(
+            "Call session mismatch — please sign out and sign in again",
           );
         }
 
@@ -198,11 +206,14 @@ export function CallProvider({ children }: { children: ReactNode }) {
         }
       } catch (err) {
         await leaveAudioRoom();
+        const message =
+          err instanceof Error ? err.message : "Could not connect audio call";
+        const callId = call.callId;
         resetCallState();
-        getSocket().emit("call:end", { callId: call.callId });
-        toastError(
-          err instanceof Error ? err.message : "Could not connect audio call",
-        );
+        if (callId) {
+          getSocket().emit("call:end", { callId });
+        }
+        toastError(message);
       } finally {
         zegoConnectInFlightRef.current = false;
       }
@@ -334,6 +345,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
     setActiveCall(call);
     activeCallRef.current = call;
     setIncomingCall(null);
+    setPhase("connecting");
 
     const emitAccept = () => {
       getSocket().emit(
@@ -378,12 +390,16 @@ export function CallProvider({ children }: { children: ReactNode }) {
 
   const cancelCall = useCallback(() => {
     const call = activeCallRef.current;
-    if (call?.isCaller && phase === "outgoing") {
+    if (!call?.isCaller) return;
+
+    if (phaseRef.current === "outgoing") {
       getSocket().emit("call:cancel", { callId: call.callId });
+    } else {
+      getSocket().emit("call:end", { callId: call.callId });
     }
     void leaveAudioRoom();
     resetCallState();
-  }, [phase, resetCallState]);
+  }, [resetCallState]);
 
   const toggleMute = useCallback(() => {
     setMuted((prev) => {

@@ -45,7 +45,7 @@ function roomLoginError(errorCode: number, extendedData: string): Error {
 function waitForRoomConnected(
   zg: ZegoEngine,
   roomId: string,
-  timeoutMs = 15_000,
+  timeoutMs = 25_000,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     const timer = window.setTimeout(() => {
@@ -96,7 +96,10 @@ function waitForPublishReady(
       extendedData?: string;
     }) => {
       if (result.streamID !== streamID) return;
-      if (result.state === "PUBLISHING") {
+      if (
+        result.state === "PUBLISHING" ||
+        result.state === "PUBLISH_REQUESTING"
+      ) {
         window.clearTimeout(timer);
         zg.off("publisherStateUpdate", onPublish);
         resolve();
