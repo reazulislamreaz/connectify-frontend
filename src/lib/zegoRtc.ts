@@ -25,6 +25,59 @@ function formatZegoError(err: unknown): string {
   return "Could not connect audio call";
 }
 
+function roomLoginError(errorCode: number, extendedData: string): Error {
+  const serverCode =
+    extendedData && /server_code["']?\s*:\s*(\d+)/.exec(extendedData)?.[1];
+  const authFailure =
+    errorCode === 1002099 ||
+    serverCode === "52200101" ||
+    /auth failure|LOGIN_FAILED/i.test(extendedData);
+  if (errorCode === 1002034 || authFailure) {
+    return new Error(
+      "Zego rejected the call token — on your VPS set ZEGOCLOUD_SERVER_SECRET to the 32-character Server Secret from the ZEGOCLOUD console (same project as your App ID), then restart the API",
+    );
+  }
+  return new Error(
+    `Room connection failed (${errorCode})${extendedData ? `: ${extendedData}` : ""}`,
+  );
+}
+
+function waitForRoomConnected(
+  zg: ZegoEngine,
+  roomId: string,
+  timeoutMs = 15_000,
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const timer = window.setTimeout(() => {
+      zg.off("roomStateUpdate", onRoomState);
+      reject(new Error("Timed out joining Zego room"));
+    }, timeoutMs);
+
+    const onRoomState = (
+      roomID: string,
+      state: string,
+      errorCode: number,
+      extendedData: string,
+    ) => {
+      if (roomID !== roomId) return;
+      if (state === "CONNECTED") {
+        window.clearTimeout(timer);
+        zg.off("roomStateUpdate", onRoomState);
+        resolve();
+      } else if (
+        state === "LOGIN_FAILED" ||
+        (state === "DISCONNECTED" && errorCode !== 0)
+      ) {
+        window.clearTimeout(timer);
+        zg.off("roomStateUpdate", onRoomState);
+        reject(roomLoginError(errorCode, extendedData));
+      }
+    };
+
+    zg.on("roomStateUpdate", onRoomState);
+  });
+}
+
 function waitForPublishReady(
   zg: ZegoEngine,
   streamID: string,
@@ -58,6 +111,7 @@ function waitForPublishReady(
       }
     };
 
+    // Must register before startPublishingStream or we can miss a fast PUBLISHING event.
     zg.on("publisherStateUpdate", onPublish);
   });
 }
@@ -89,24 +143,6 @@ export async function joinAudioRoom(params: {
     throw new Error("This browser does not support WebRTC calls");
   }
 
-  let loginFailed: Error | null = null;
-  const onRoomState = (
-    roomID: string,
-    state: string,
-    errorCode: number,
-    extendedData: string,
-  ) => {
-    if (roomID !== params.roomId) return;
-    if (state === "DISCONNECTED" && errorCode !== 0) {
-      loginFailed = new Error(
-        errorCode === 1002034
-          ? "Invalid Zego token — set ZEGOCLOUD_SERVER_SECRET (32 chars) on the VPS, not App Sign"
-          : `Room connection failed (${errorCode})${extendedData ? `: ${extendedData}` : ""}`,
-      );
-    }
-  };
-  zg.on("roomStateUpdate", onRoomState);
-
   zg.on(
     "roomStreamUpdate",
     async (roomID, updateType, streamList: { streamID: string }[]) => {
@@ -135,20 +171,14 @@ export async function joinAudioRoom(params: {
     }
   });
 
+  const roomConnected = waitForRoomConnected(zg, params.roomId);
+
   const loggedIn = await zg.loginRoom(
     params.roomId,
     params.token,
     { userID: params.userId, userName: params.userName },
     { userUpdate: true },
   );
-
-  zg.off("roomStateUpdate", onRoomState);
-
-  if (loginFailed) {
-    engine = null;
-    activeRoomId = null;
-    throw loginFailed;
-  }
 
   if (!loggedIn) {
     engine = null;
@@ -159,18 +189,20 @@ export async function joinAudioRoom(params: {
   }
 
   try {
+    await roomConnected;
     // SDK 3.x: must use createZegoStream (createStream / raw getUserMedia break publish)
     localZegoStream = await zg.createZegoStream({
-      camera: { audio: true, video: false },
+      camera: { video: false, audio: true },
     });
 
     publishStreamId = `audio_${params.userId}`;
+    const publishReady = waitForPublishReady(zg, publishStreamId);
     const published = zg.startPublishingStream(publishStreamId, localZegoStream);
     if (!published) {
       throw new Error("Failed to start publishing audio");
     }
 
-    await waitForPublishReady(zg, publishStreamId);
+    await publishReady;
   } catch (err) {
     await leaveAudioRoom();
     if (err instanceof Error && /permission|notallowed|denied/i.test(err.message)) {
@@ -178,7 +210,7 @@ export async function joinAudioRoom(params: {
         "Microphone blocked — allow mic access in the browser and try again",
       );
     }
-    throw new Error(formatZegoError(err));
+    throw err instanceof Error ? err : new Error(formatZegoError(err));
   }
 
   return zg;

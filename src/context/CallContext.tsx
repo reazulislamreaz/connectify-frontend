@@ -188,14 +188,14 @@ export function CallProvider({ children }: { children: ReactNode }) {
           userName: user.name,
           onRemoteStream: () => {
             setPhase("active");
-            if (!remoteConnectedToastRef.current) {
-              remoteConnectedToastRef.current = true;
-              toastSuccess("Call connected — you can hear each other");
-            }
           },
         });
 
         setPhase("active");
+        if (!remoteConnectedToastRef.current) {
+          remoteConnectedToastRef.current = true;
+          toastSuccess("Call connected — you can hear each other");
+        }
       } catch (err) {
         await leaveAudioRoom();
         resetCallState();
