@@ -47,7 +47,6 @@ export function SignOutButton({
       </button>
     );
   }
-
   return (
     <button
       type="button"

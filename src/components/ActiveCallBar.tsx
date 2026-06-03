@@ -3,11 +3,20 @@
 import { useCall } from "@/context/CallContext";
 
 export function ActiveCallBar() {
-  const { phase, activeCall, muted, cancelCall, endCall, toggleMute } = useCall();
+  const {
+    phase,
+    activeCall,
+    muted,
+    cancelCall,
+    endCall,
+    toggleMute,
+    joinCallAudio,
+  } = useCall();
 
   const showBar =
     activeCall &&
     (phase === "outgoing" ||
+      phase === "joinAudio" ||
       phase === "connecting" ||
       phase === "active" ||
       phase === "ending");
@@ -17,13 +26,16 @@ export function ActiveCallBar() {
   const statusLabel =
     phase === "outgoing"
       ? "Calling…"
-      : phase === "connecting"
-        ? "Connecting…"
-        : phase === "active"
-          ? "On call"
-          : "Ending…";
+      : phase === "joinAudio"
+        ? "Answered — join audio"
+        : phase === "connecting"
+          ? "Connecting…"
+          : phase === "active"
+            ? "On call"
+            : "Ending…";
 
-  const onHangUp = phase === "outgoing" ? cancelCall : endCall;
+  const onHangUp =
+    phase === "outgoing" || phase === "joinAudio" ? cancelCall : endCall;
 
   return (
     <div className="fixed bottom-[5.25rem] left-1/2 z-[90] w-[min(100vw-1.5rem,24rem)] -translate-x-1/2 rounded-2xl border border-brand-200 bg-white px-4 py-3 shadow-lg sm:bottom-6">
@@ -49,6 +61,15 @@ export function ActiveCallBar() {
           </p>
           <p className="text-xs text-brand-600">{statusLabel}</p>
         </div>
+        {phase === "joinAudio" && (
+          <button
+            type="button"
+            onClick={joinCallAudio}
+            className="rounded-full bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-brand-700"
+          >
+            Join audio
+          </button>
+        )}
         {phase === "active" && (
           <button
             type="button"

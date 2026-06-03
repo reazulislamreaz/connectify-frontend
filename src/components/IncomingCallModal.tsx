@@ -4,6 +4,7 @@ import { useCall } from "@/context/CallContext";
 
 export function IncomingCallModal() {
   const { phase, incomingCall, acceptCall, rejectCall } = useCall();
+  const busy = phase === "connecting" || phase === "active";
 
   if (phase !== "incoming" || !incomingCall) return null;
 
@@ -34,9 +35,10 @@ export function IncomingCallModal() {
           <button
             type="button"
             onClick={acceptCall}
-            className="flex-1 rounded-xl bg-brand-600 py-3 text-sm font-semibold text-white transition hover:bg-brand-700"
+            disabled={busy}
+            className="flex-1 rounded-xl bg-brand-600 py-3 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:opacity-50"
           >
-            Accept
+            {busy ? "Connecting…" : "Accept"}
           </button>
         </div>
       </div>
