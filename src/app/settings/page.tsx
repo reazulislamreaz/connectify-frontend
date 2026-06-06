@@ -8,7 +8,7 @@ import { MessageSoundSettings } from "@/components/MessageSoundSettings";
 import { api, clearToken } from "@/lib/api";
 import { getQueryClient } from "@/lib/queryClient";
 import { disconnectSocket } from "@/lib/socket";
-import { toastError, toastSuccess } from "@/lib/toast";
+import { toastConfirm, toastError, toastSuccess } from "@/lib/toast";
 import type { ApiResponse } from "@/types";
 
 export default function SettingsPage() {
@@ -59,13 +59,13 @@ export default function SettingsPage() {
       toastError("Type DELETE in the confirmation box to continue");
       return;
     }
-    if (
-      !confirm(
+    const confirmed = await toastConfirm({
+      message:
         "Delete your account permanently? All messages, posts, and data will be removed.",
-      )
-    ) {
-      return;
-    }
+      confirmLabel: "Delete account",
+      destructive: true,
+    });
+    if (!confirmed) return;
 
     setDeleteLoading(true);
     try {

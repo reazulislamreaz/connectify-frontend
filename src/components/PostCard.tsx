@@ -11,7 +11,7 @@ import { api } from "@/lib/api";
 import { queryKeys } from "@/lib/queryKeys";
 import { useCommentsInfiniteQuery } from "@/hooks/queries";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
-import { toastError, toastSuccess } from "@/lib/toast";
+import { toastConfirm, toastError, toastSuccess } from "@/lib/toast";
 import type { Post, PostComment, ApiResponse } from "@/types";
 
 function timeAgo(dateStr: string) {
@@ -130,7 +130,12 @@ export function PostCard({ post, onUpdate, onRemove, currentUserId }: PostCardPr
   };
 
   const handleDeletePost = async () => {
-    if (!confirm("Delete this post? This cannot be undone.")) return;
+    const confirmed = await toastConfirm({
+      message: "Delete this post? This cannot be undone.",
+      confirmLabel: "Delete post",
+      destructive: true,
+    });
+    if (!confirmed) return;
     try {
       await api(`/posts/${post.id}`, { method: "DELETE" });
       onRemove?.(post.id);
@@ -164,7 +169,12 @@ export function PostCard({ post, onUpdate, onRemove, currentUserId }: PostCardPr
   };
 
   const handleDeleteComment = async (commentId: string) => {
-    if (!confirm("Delete this comment?")) return;
+    const confirmed = await toastConfirm({
+      message: "Delete this comment?",
+      confirmLabel: "Delete",
+      destructive: true,
+    });
+    if (!confirmed) return;
     try {
       await api<ApiResponse<{ postId: string }>>(
         `/posts/${post.id}/comments/${commentId}`,

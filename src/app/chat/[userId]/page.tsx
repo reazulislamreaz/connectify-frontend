@@ -23,7 +23,7 @@ import { getSocket } from "@/lib/socket";
 import { useAuth } from "@/context/AuthContext";
 import { useChat } from "@/context/ChatContext";
 import type { Message, ApiResponse, ChatListItem } from "@/types";
-import { toastError, toastSuccess } from "@/lib/toast";
+import { toastConfirm, toastError, toastSuccess } from "@/lib/toast";
 import { invalidateMessages } from "@/lib/invalidateCache";
 import { useCall } from "@/context/CallContext";
 
@@ -369,13 +369,13 @@ export default function ChatPage() {
   };
 
   const handleDeleteConversation = async () => {
-    if (
-      !confirm(
+    const confirmed = await toastConfirm({
+      message:
         "Delete this entire conversation? All messages will be permanently removed.",
-      )
-    ) {
-      return;
-    }
+      confirmLabel: "Delete conversation",
+      destructive: true,
+    });
+    if (!confirmed) return;
     setHeaderMenuOpen(false);
     try {
       await api(`/chats/${otherUserId}`, { method: "DELETE" });
@@ -392,7 +392,12 @@ export default function ChatPage() {
 
   const handleDeleteMessage = useCallback(
     async (messageId: string) => {
-      if (!confirm("Delete this message?")) return;
+      const confirmed = await toastConfirm({
+        message: "Delete this message?",
+        confirmLabel: "Delete",
+        destructive: true,
+      });
+      if (!confirmed) return;
       try {
         const res = await api<ApiResponse<Message>>(`/messages/${messageId}`, {
           method: "DELETE",

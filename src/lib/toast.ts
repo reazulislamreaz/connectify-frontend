@@ -15,3 +15,5 @@ export function toastLoading(message: string) {
 export function dismissToast(id?: string) {
   toast.dismiss(id);
 }
+
+export { toastConfirm } from "./toastConfirm";
