@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { memo, useState } from "react";
 import { getUploadUrl } from "@/lib/api";
 import { getReplyPreviewText } from "@/lib/replyPreview";
 import { VoiceMessagePlayer } from "@/components/VoiceMessagePlayer";
@@ -45,7 +45,7 @@ function ReplyQuote({
   );
 }
 
-export function MessageBubble({
+function MessageBubbleBase({
   message,
   isOwn,
   onEdit,
@@ -171,6 +171,8 @@ export function MessageBubble({
               <img
                 src={imageSrc}
                 alt="Shared"
+                loading="lazy"
+                decoding="async"
                 className="max-h-56 w-full object-cover sm:max-h-72"
               />
             </a>
@@ -216,3 +218,11 @@ export function MessageBubble({
     </div>
   );
 }
+
+/**
+ * Memoized: in a long thread the parent re-renders on every typing/presence/
+ * socket event — without this, all bubbles would re-render each time. Props
+ * passed in (handlers) are stable, so a bubble only re-renders when its own
+ * `message` changes.
+ */
+export const MessageBubble = memo(MessageBubbleBase);

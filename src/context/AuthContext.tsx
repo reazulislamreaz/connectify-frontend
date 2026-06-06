@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useState,
   ReactNode,
 } from "react";
@@ -73,31 +74,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [refreshUser]);
 
-  const login = async (email: string, password: string) => {
-    const res = await api<ApiResponse<AuthResponse>>("/auth/login", {
-      method: "POST",
-      auth: false,
-      body: JSON.stringify({ email, password }),
-    });
-    setToken(res.data.token);
-    setUser(res.data.user);
-    connectSocket();
-    router.push("/dashboard");
-  };
+  const login = useCallback(
+    async (email: string, password: string) => {
+      const res = await api<ApiResponse<AuthResponse>>("/auth/login", {
+        method: "POST",
+        auth: false,
+        body: JSON.stringify({ email, password }),
+      });
+      setToken(res.data.token);
+      setUser(res.data.user);
+      connectSocket();
+      router.push("/dashboard");
+    },
+    [router],
+  );
 
-  const register = async (name: string, email: string, password: string) => {
-    const res = await api<ApiResponse<AuthResponse>>("/auth/register", {
-      method: "POST",
-      auth: false,
-      body: JSON.stringify({ name, email, password }),
-    });
-    setToken(res.data.token);
-    setUser(res.data.user);
-    connectSocket();
-    router.push("/dashboard");
-  };
+  const register = useCallback(
+    async (name: string, email: string, password: string) => {
+      const res = await api<ApiResponse<AuthResponse>>("/auth/register", {
+        method: "POST",
+        auth: false,
+        body: JSON.stringify({ name, email, password }),
+      });
+      setToken(res.data.token);
+      setUser(res.data.user);
+      connectSocket();
+      router.push("/dashboard");
+    },
+    [router],
+  );
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       await api("/auth/logout", { method: "POST" });
     } catch {
@@ -108,14 +115,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     disconnectSocket();
     getQueryClient().clear();
     router.push("/login");
-  };
+  }, [router]);
+
+  const value = useMemo(
+    () => ({ user, loading, login, register, logout, refreshUser }),
+    [user, loading, login, register, logout, refreshUser],
+  );
 
   return (
-    <AuthContext.Provider
-      value={{ user, loading, login, register, logout, refreshUser }}
-    >
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
   );
 }
 

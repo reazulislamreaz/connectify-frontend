@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
   ReactNode,
@@ -195,19 +196,18 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     };
   }, [user, queryClient, pathname]);
 
-  return (
-    <ChatContext.Provider
-      value={{
-        chatList,
-        loading: isPending,
-        isFetching,
-        refreshChatList,
-        typingUsers,
-      }}
-    >
-      {children}
-    </ChatContext.Provider>
+  const value = useMemo(
+    () => ({
+      chatList,
+      loading: isPending,
+      isFetching,
+      refreshChatList,
+      typingUsers,
+    }),
+    [chatList, isPending, isFetching, refreshChatList, typingUsers],
   );
+
+  return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
 }
 
 export function useChat() {

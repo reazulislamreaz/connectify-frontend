@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -489,32 +490,50 @@ export function CallProvider({ children }: { children: ReactNode }) {
     activeCall?.peerName ?? incomingCall?.callerName ?? "Unknown";
   const peerAvatar = activeCall?.peerAvatar ?? incomingCall?.callerAvatar;
 
-  return (
-    <CallContext.Provider
-      value={{
-        phase,
-        incomingCall,
-        activeCall,
-        muted,
-        cameraOff,
-        callType,
-        peerName,
-        peerAvatar,
-        remoteStream,
-        startCall,
-        acceptCall,
-        rejectCall,
-        cancelCall,
-        endCall,
-        toggleMute,
-        toggleCamera,
-        switchCamera,
-        attachLocalVideo,
-      }}
-    >
-      {children}
-    </CallContext.Provider>
+  const value = useMemo(
+    () => ({
+      phase,
+      incomingCall,
+      activeCall,
+      muted,
+      cameraOff,
+      callType,
+      peerName,
+      peerAvatar,
+      remoteStream,
+      startCall,
+      acceptCall,
+      rejectCall,
+      cancelCall,
+      endCall,
+      toggleMute,
+      toggleCamera,
+      switchCamera,
+      attachLocalVideo,
+    }),
+    [
+      phase,
+      incomingCall,
+      activeCall,
+      muted,
+      cameraOff,
+      callType,
+      peerName,
+      peerAvatar,
+      remoteStream,
+      startCall,
+      acceptCall,
+      rejectCall,
+      cancelCall,
+      endCall,
+      toggleMute,
+      toggleCamera,
+      switchCamera,
+      attachLocalVideo,
+    ],
   );
+
+  return <CallContext.Provider value={value}>{children}</CallContext.Provider>;
 }
 
 export function useCall() {

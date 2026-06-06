@@ -391,6 +391,14 @@ export async function leaveCallRoom(): Promise<void> {
     zg.logoutRoom();
   }
 
+  // Release the engine itself — a fresh one is created per call, so without
+  // this the engine + its WebRTC peer connections leak across calls.
+  try {
+    zg.destroyEngine();
+  } catch {
+    /* engine may already be torn down */
+  }
+
   engine = null;
   activeRoomId = null;
   localVideoView = null;

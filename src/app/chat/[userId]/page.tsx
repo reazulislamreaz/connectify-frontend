@@ -390,19 +390,24 @@ export default function ChatPage() {
     }
   };
 
-  const handleDeleteMessage = async (messageId: string) => {
-    if (!confirm("Delete this message?")) return;
-    try {
-      const res = await api<ApiResponse<Message>>(`/messages/${messageId}`, {
-        method: "DELETE",
-      });
-      replaceMessage(res.data);
-      refreshChatList();
-      toastSuccess("Message deleted");
-    } catch (err) {
-      toastError(err instanceof Error ? err.message : "Failed to delete message");
-    }
-  };
+  const handleDeleteMessage = useCallback(
+    async (messageId: string) => {
+      if (!confirm("Delete this message?")) return;
+      try {
+        const res = await api<ApiResponse<Message>>(`/messages/${messageId}`, {
+          method: "DELETE",
+        });
+        replaceMessage(res.data);
+        refreshChatList();
+        toastSuccess("Message deleted");
+      } catch (err) {
+        toastError(
+          err instanceof Error ? err.message : "Failed to delete message",
+        );
+      }
+    },
+    [replaceMessage, refreshChatList],
+  );
 
   const handleSaveEdit = async (
     content: string,
@@ -425,6 +430,31 @@ export default function ChatPage() {
   };
 
   const isTyping = typingUsers[otherUserId];
+
+  // Memoize the bubble elements so header-only re-renders (typing, presence)
+  // don't recreate the whole list. Only recomputes when messages change.
+  const messageItems = useMemo(
+    () =>
+      messages.map((msg) => (
+        <MessageBubble
+          key={msg.id}
+          message={msg}
+          isOwn={msg.senderId === user?.id}
+          onReply={setReplyTo}
+          onEdit={
+            msg.senderId === user?.id && !msg.isDeleted && !msg.voiceUrl
+              ? setEditingMessage
+              : undefined
+          }
+          onDelete={
+            msg.senderId === user?.id && !msg.isDeleted
+              ? handleDeleteMessage
+              : undefined
+          }
+        />
+      )),
+    [messages, user?.id, handleDeleteMessage],
+  );
 
   return (
       <div className="flex h-full flex-col">
@@ -591,26 +621,7 @@ export default function ChatPage() {
                   <span className="text-xs text-slate-400">Loading older messages…</span>
                 )}
               </div>
-              {messages.map((msg) => (
-                <MessageBubble
-                  key={msg.id}
-                  message={msg}
-                  isOwn={msg.senderId === user?.id}
-                  onReply={setReplyTo}
-                  onEdit={
-                    msg.senderId === user?.id &&
-                    !msg.isDeleted &&
-                    !msg.voiceUrl
-                      ? setEditingMessage
-                      : undefined
-                  }
-                  onDelete={
-                    msg.senderId === user?.id && !msg.isDeleted
-                      ? handleDeleteMessage
-                      : undefined
-                  }
-                />
-              ))}
+              {messageItems}
               <div ref={messagesEndRef} className="h-3 shrink-0 sm:h-2" />
             </div>
           )}

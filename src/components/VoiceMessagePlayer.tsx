@@ -21,6 +21,7 @@ export function VoiceMessagePlayer({
   isOwn = false,
 }: VoiceMessagePlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
+  const lastTickRef = useRef(0);
   const [playing, setPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [loadedDuration, setLoadedDuration] = useState(duration);
@@ -104,7 +105,12 @@ export function VoiceMessagePlayer({
         }}
         onTimeUpdate={() => {
           const audio = audioRef.current;
-          if (audio) setCurrentTime(audio.currentTime);
+          if (!audio) return;
+          // timeupdate fires up to ~60x/sec; throttle state updates to ~4x/sec.
+          const now = audio.currentTime;
+          if (Math.abs(now - lastTickRef.current) < 0.25) return;
+          lastTickRef.current = now;
+          setCurrentTime(now);
         }}
         onEnded={() => {
           setPlaying(false);
