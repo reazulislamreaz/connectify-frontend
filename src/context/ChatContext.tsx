@@ -61,8 +61,13 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     const socket = getSocket();
 
     const onReceiveMessage = (message: Message) => {
-      if (shouldPlayIncomingSound(message, user.id, pathname)) {
-        playIncomingMessageSound();
+      // Ack delivery (single tick) for any message addressed to us.
+      if (message.senderId !== user.id) {
+        socket.emit("message_delivered", { senderId: message.senderId });
+
+        if (shouldPlayIncomingSound(message, user.id, pathname)) {
+          playIncomingMessageSound();
+        }
       }
 
       queryClient.setQueryData<ChatListItem[]>(queryKeys.chats, (prev) => {
@@ -95,6 +100,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
                 isDeleted: message.isDeleted,
                 senderId: message.senderId,
                 createdAt: message.createdAt,
+                delivered: message.delivered,
                 read: message.read,
               },
               unreadCount:
@@ -122,7 +128,25 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           chat.user.id === data.readerId && chat.lastMessage
             ? {
                 ...chat,
-                lastMessage: { ...chat.lastMessage, read: true },
+                lastMessage: {
+                  ...chat.lastMessage,
+                  delivered: true,
+                  read: true,
+                },
+              }
+            : chat,
+        );
+      });
+    };
+
+    const onMessagesDelivered = (data: { receiverId: string }) => {
+      queryClient.setQueryData<ChatListItem[]>(queryKeys.chats, (prev) => {
+        if (!prev) return prev;
+        return prev.map((chat) =>
+          chat.user.id === data.receiverId && chat.lastMessage
+            ? {
+                ...chat,
+                lastMessage: { ...chat.lastMessage, delivered: true },
               }
             : chat,
         );
@@ -156,12 +180,14 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
     socket.on("receive_message", onReceiveMessage);
     socket.on("messages_read", onMessagesRead);
+    socket.on("messages_delivered", onMessagesDelivered);
     socket.on("typing", onTyping);
     socket.on("user_presence", onUserPresence);
 
     return () => {
       socket.off("receive_message", onReceiveMessage);
       socket.off("messages_read", onMessagesRead);
+      socket.off("messages_delivered", onMessagesDelivered);
       socket.off("typing", onTyping);
       socket.off("user_presence", onUserPresence);
       Object.values(typingClearTimers.current).forEach(clearTimeout);

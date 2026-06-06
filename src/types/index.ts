@@ -70,6 +70,7 @@ export interface Message {
   callStatus?: CallLogStatus;
   callDuration?: number;
   callType?: CallType;
+  delivered?: boolean;
   read: boolean;
   readAt?: string;
   isDeleted?: boolean;
@@ -90,6 +91,7 @@ export interface ChatListItem {
     callStatus?: CallLogStatus;
     callDuration?: number;
     callType?: CallType;
+    delivered?: boolean;
     isDeleted?: boolean;
     senderId: string;
     createdAt: string;

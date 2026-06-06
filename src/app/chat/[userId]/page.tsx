@@ -233,17 +233,49 @@ export default function ChatPage() {
       }
     };
 
+    // Update the delivery/seen ticks on our own sent messages in real time.
+    const markOwnMessages = (patch: Partial<Message>) => {
+      updateMessagesCache((old) => {
+        if (!old?.pages.length) return old;
+        return {
+          ...old,
+          pages: old.pages.map((page) => ({
+            ...page,
+            messages: page.messages.map((m) =>
+              m.senderId === user.id ? { ...m, ...patch } : m,
+            ),
+          })),
+        };
+      });
+    };
+
+    const onMessagesRead = (data: { readerId: string }) => {
+      if (data.readerId === otherUserId) {
+        markOwnMessages({ delivered: true, read: true });
+      }
+    };
+
+    const onMessagesDelivered = (data: { receiverId: string }) => {
+      if (data.receiverId === otherUserId) {
+        markOwnMessages({ delivered: true });
+      }
+    };
+
     socket.on("receive_message", onReceiveMessage);
     socket.on("message_updated", onMessageUpdated);
     socket.on("message_deleted", onMessageDeleted);
     socket.on("conversation_deleted", onConversationDeleted);
+    socket.on("messages_read", onMessagesRead);
+    socket.on("messages_delivered", onMessagesDelivered);
     return () => {
       socket.off("receive_message", onReceiveMessage);
       socket.off("message_updated", onMessageUpdated);
       socket.off("message_deleted", onMessageDeleted);
       socket.off("conversation_deleted", onConversationDeleted);
+      socket.off("messages_read", onMessagesRead);
+      socket.off("messages_delivered", onMessagesDelivered);
     };
-  }, [user, otherUserId, appendMessage, replaceMessage, markConversationRead, refreshChatList, queryClient]);
+  }, [user, otherUserId, appendMessage, replaceMessage, markConversationRead, refreshChatList, queryClient, updateMessagesCache]);
 
   const emitTyping = (isTyping: boolean) => {
     const now = Date.now();

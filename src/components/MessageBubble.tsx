@@ -5,6 +5,7 @@ import { getUploadUrl } from "@/lib/api";
 import { getReplyPreviewText } from "@/lib/replyPreview";
 import { VoiceMessagePlayer } from "@/components/VoiceMessagePlayer";
 import { CallLogBubble } from "@/components/CallLogBubble";
+import { MessageTicks } from "@/components/MessageTicks";
 import type { Message } from "@/types";
 
 interface MessageBubbleProps {
@@ -202,7 +203,12 @@ export function MessageBubble({
             >
               {message.editedAt && <span className="mr-1">edited</span>}
               <span>{time}</span>
-              {isOwn && <span>{message.read ? "✓✓" : "✓"}</span>}
+              {isOwn && (
+                <MessageTicks
+                  delivered={message.delivered}
+                  read={message.read}
+                />
+              )}
             </p>
           </div>
         </div>
