@@ -6,29 +6,20 @@ interface MessageTicksProps {
 
 /**
  * WhatsApp-style delivery/seen indicator for the sender's own messages:
- *  - not delivered yet (sent) → single faint tick
- *  - delivered               → single tick
- *  - read / seen             → double tick, colored
+ *  - sent (not delivered) → single grey tick
+ *  - delivered            → double grey tick
+ *  - read / seen          → double blue tick
  */
 export function MessageTicks({ delivered, read, className }: MessageTicksProps) {
-  const colorClass = read
-    ? "text-sky-500"
-    : delivered
-      ? "text-current"
-      : "text-current opacity-50";
+  const colorClass = read ? "text-sky-500" : "text-current";
 
-  if (read || delivered) {
-    // Double tick once read; the read state is distinguished by color.
-    const single = delivered && !read;
-    return single ? (
-      <SingleTick className={`${colorClass} ${className ?? ""}`} />
-    ) : (
-      <DoubleTick className={`${colorClass} ${className ?? ""}`} />
-    );
+  // Single tick only until the message reaches the recipient's device.
+  if (!delivered && !read) {
+    return <SingleTick className={`${colorClass} ${className ?? ""}`} />;
   }
 
-  // Sent but not yet delivered.
-  return <SingleTick className={`${colorClass} ${className ?? ""}`} />;
+  // Double tick once delivered; blue once read.
+  return <DoubleTick className={`${colorClass} ${className ?? ""}`} />;
 }
 
 function SingleTick({ className }: { className?: string }) {
