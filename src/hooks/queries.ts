@@ -20,6 +20,7 @@ import type {
 const MESSAGE_PAGE_SIZE = 30;
 const FEED_PAGE_SIZE = 10;
 const COMMENT_PAGE_SIZE = 20;
+const USERS_PAGE_SIZE = 30;
 
 type FeedPage = {
   posts: Post[];
@@ -41,6 +42,16 @@ export type MessagesPage = {
 type CommentsPage = {
   comments: PostComment[];
   pagination: { page: number; totalPages: number; limit: number; total: number };
+};
+
+type UsersPage = {
+  users: User[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 };
 
 export function flattenMessagePages(
@@ -65,19 +76,25 @@ export function useChatsQuery(enabled: boolean) {
   });
 }
 
-export function useUsersQuery(search: string) {
-  return useQuery({
+export function useUsersInfiniteQuery(search: string) {
+  return useInfiniteQuery({
     queryKey: queryKeys.users(search),
-    queryFn: async ({ signal }) => {
+    queryFn: async ({ pageParam, signal }) => {
       const params = new URLSearchParams();
       if (search) params.set("search", search);
-      params.set("limit", "30");
-      const res = await api<ApiResponse<{ users: User[] }>>(
+      params.set("page", String(pageParam));
+      params.set("limit", String(USERS_PAGE_SIZE));
+      const res = await api<ApiResponse<UsersPage>>(
         `/users?${params.toString()}`,
         { signal },
       );
-      return res.data.users;
+      return res.data;
     },
+    initialPageParam: 1,
+    getNextPageParam: (last) =>
+      last.pagination.page < last.pagination.totalPages
+        ? last.pagination.page + 1
+        : undefined,
     staleTime: 2 * 60 * 1000,
     placeholderData: (previousData, previousQuery) =>
       previousQuery?.queryKey[1] === search ? previousData : undefined,

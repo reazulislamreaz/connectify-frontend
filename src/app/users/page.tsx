@@ -1,15 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { AppLayout } from "@/components/AppLayout";
 import { SectionPage } from "@/components/SectionPage";
 import { EmptyState } from "@/components/EmptyState";
-import { UsersGridSkeleton } from "@/components/skeletons";
+import { UserCardSkeleton, UsersGridSkeleton } from "@/components/skeletons";
 import { UserCard } from "@/components/UserCard";
 import { api } from "@/lib/api";
 import { invalidateSocial } from "@/lib/invalidateCache";
-import { useUsersQuery } from "@/hooks/queries";
+import { useUsersInfiniteQuery } from "@/hooks/queries";
+import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import { isAbortError } from "@/lib/apiErrors";
 import { toastError, toastSuccess } from "@/lib/toast";
 
@@ -33,9 +34,24 @@ export default function UsersPage() {
     isFetched,
     error,
     refetch,
-  } = useUsersQuery(debouncedSearch);
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useUsersInfiniteQuery(debouncedSearch);
 
-  const users = data ?? [];
+  const users = data?.pages.flatMap((page) => page.users) ?? [];
+  const total = data?.pages[0]?.pagination.total ?? users.length;
+
+  const loadMoreUsers = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      void fetchNextPage();
+    }
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  const loadMoreRef = useIntersectionObserver(loadMoreUsers, {
+    enabled: hasNextPage && !isPending && users.length > 0,
+    rootMargin: "200px",
+  });
   const showLoadError =
     isError && isFetched && !isFetching && error && !isAbortError(error);
 
@@ -127,10 +143,16 @@ export default function UsersPage() {
           </div>
         )}
 
-        {!showSkeleton && !showLoadError && users.length > 0 && (
+        {!showSkeleton && !showLoadError && total > 0 && (
           <p className="text-sm text-slate-500">
-            {users.length} {users.length === 1 ? "person" : "people"} found
+            {total} {total === 1 ? "person" : "people"} found
             {search ? ` for "${search}"` : ""}
+            {hasNextPage && users.length < total && (
+              <span className="text-slate-400">
+                {" "}
+                · showing {users.length}
+              </span>
+            )}
           </p>
         )}
 
@@ -161,22 +183,38 @@ export default function UsersPage() {
                 }
               />
         ) : (
-          <div
-            className={`section-grid users-page-grid ${
-              isSearching ? "opacity-70 transition-opacity" : "animate-fade-in"
-            }`}
-          >
-            {users.map((u) => (
-              <UserCard
-                key={u.id}
-                user={u}
-                onAddFriend={sendRequest}
-                onCancelRequest={cancelRequest}
-                sendingRequest={sendingTo === u.id}
-                cancellingRequest={cancellingId === u.relationship?.requestId}
-              />
-            ))}
-          </div>
+          <>
+            <div
+              className={`section-grid users-page-grid ${
+                isSearching ? "opacity-70 transition-opacity" : "animate-fade-in"
+              }`}
+            >
+              {users.map((u) => (
+                <UserCard
+                  key={u.id}
+                  user={u}
+                  onAddFriend={sendRequest}
+                  onCancelRequest={cancelRequest}
+                  sendingRequest={sendingTo === u.id}
+                  cancellingRequest={cancellingId === u.relationship?.requestId}
+                />
+              ))}
+            </div>
+            {hasNextPage && (
+              <div ref={loadMoreRef} className="section-grid users-page-grid pb-4">
+                {isFetchingNextPage ? (
+                  <>
+                    <UserCardSkeleton />
+                    <UserCardSkeleton />
+                  </>
+                ) : (
+                  <p className="col-span-full py-2 text-center text-sm text-slate-400">
+                    Scroll for more people
+                  </p>
+                )}
+              </div>
+            )}
+          </>
         )}
       </SectionPage>
     </AppLayout>
