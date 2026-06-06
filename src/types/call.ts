@@ -13,6 +13,7 @@ export interface IncomingCallPayload {
   roomId: string;
   callerId: string;
   callerName: string;
+  callerAvatar?: string;
   callType?: CallType;
 }
 

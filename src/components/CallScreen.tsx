@@ -93,7 +93,8 @@ export function CallScreen() {
     phase,
     callType,
     activeCall,
-    incomingCall,
+    peerName,
+    peerAvatar,
     muted,
     cameraOff,
     remoteStream,
@@ -113,8 +114,6 @@ export function CallScreen() {
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isVideo = callType === "video";
-  const peerName =
-    activeCall?.peerName ?? incomingCall?.callerName ?? "Unknown";
   const isCaller = activeCall?.isCaller ?? false;
   const visible = phase !== "idle";
 
@@ -277,7 +276,7 @@ export function CallScreen() {
               </>
             )}
             <div className="relative rounded-full ring-4 ring-white/20">
-              <Avatar name={peerName} size="xl" />
+              <Avatar name={peerName} src={peerAvatar} size="xl" />
             </div>
           </div>
         </div>

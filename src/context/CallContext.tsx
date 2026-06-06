@@ -38,6 +38,7 @@ interface ActiveCallState {
   roomId: string;
   peerId: string;
   peerName: string;
+  peerAvatar?: string;
   isCaller: boolean;
   callType: CallType;
 }
@@ -49,8 +50,15 @@ interface CallContextType {
   muted: boolean;
   cameraOff: boolean;
   callType: CallType;
+  peerName: string;
+  peerAvatar?: string;
   remoteStream: MediaStream | null;
-  startCall: (calleeId: string, calleeName: string, callType?: CallType) => void;
+  startCall: (
+    calleeId: string,
+    calleeName: string,
+    callType?: CallType,
+    calleeAvatar?: string,
+  ) => void;
   acceptCall: () => void;
   rejectCall: () => void;
   cancelCall: () => void;
@@ -321,7 +329,12 @@ export function CallProvider({ children }: { children: ReactNode }) {
   }, [user, connectZego, handleCallEnded]);
 
   const startCall = useCallback(
-    (calleeId: string, calleeName: string, callType: CallType = "audio") => {
+    (
+      calleeId: string,
+      calleeName: string,
+      callType: CallType = "audio",
+      calleeAvatar?: string,
+    ) => {
       if (!user || phase !== "idle") return;
 
       void (async () => {
@@ -348,6 +361,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
               roomId: response.data.roomId,
               peerId: calleeId,
               peerName: calleeName,
+              peerAvatar: calleeAvatar,
               isCaller: true,
               callType: response.data.callType ?? callType,
             };
@@ -371,6 +385,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
       roomId: incomingCall.roomId,
       peerId: incomingCall.callerId,
       peerName: incomingCall.callerName,
+      peerAvatar: incomingCall.callerAvatar,
       isCaller: false,
       callType: incomingCall.callType ?? "audio",
     };
@@ -455,6 +470,9 @@ export function CallProvider({ children }: { children: ReactNode }) {
 
   const callType: CallType =
     activeCall?.callType ?? incomingCall?.callType ?? "audio";
+  const peerName =
+    activeCall?.peerName ?? incomingCall?.callerName ?? "Unknown";
+  const peerAvatar = activeCall?.peerAvatar ?? incomingCall?.callerAvatar;
 
   return (
     <CallContext.Provider
@@ -465,6 +483,8 @@ export function CallProvider({ children }: { children: ReactNode }) {
         muted,
         cameraOff,
         callType,
+        peerName,
+        peerAvatar,
         remoteStream,
         startCall,
         acceptCall,

@@ -440,7 +440,14 @@ export default function ChatPage() {
               {otherUser && (
                 <button
                   type="button"
-                  onClick={() => startCall(otherUserId, otherUser.name, "video")}
+                  onClick={() =>
+                    startCall(
+                      otherUserId,
+                      otherUser.name,
+                      "video",
+                      otherUser.profilePicture,
+                    )
+                  }
                   disabled={callPhase !== "idle"}
                   className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white/90 transition hover:bg-white/10 disabled:opacity-40"
                   aria-label="Video call"
@@ -464,7 +471,14 @@ export default function ChatPage() {
               {otherUser && (
                 <button
                   type="button"
-                  onClick={() => startCall(otherUserId, otherUser.name, "audio")}
+                  onClick={() =>
+                    startCall(
+                      otherUserId,
+                      otherUser.name,
+                      "audio",
+                      otherUser.profilePicture,
+                    )
+                  }
                   disabled={callPhase !== "idle"}
                   className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white/90 transition hover:bg-white/10 disabled:opacity-40"
                   aria-label="Voice call"
