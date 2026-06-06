@@ -17,6 +17,7 @@ import {
   setLocalAudioMuted,
   setLocalCameraEnabled,
   setLocalVideoView,
+  switchCamera as zegoSwitchCamera,
 } from "@/lib/zegoRtc";
 import { useAuth } from "@/context/AuthContext";
 import type {
@@ -65,6 +66,7 @@ interface CallContextType {
   endCall: () => void;
   toggleMute: () => void;
   toggleCamera: () => void;
+  switchCamera: () => void;
   attachLocalVideo: (view: HTMLElement | null) => void;
 }
 
@@ -468,6 +470,19 @@ export function CallProvider({ children }: { children: ReactNode }) {
     setLocalVideoView(view);
   }, []);
 
+  const switchCamera = useCallback(() => {
+    void (async () => {
+      try {
+        const switched = await zegoSwitchCamera();
+        if (!switched) {
+          toastError("No other camera available");
+        }
+      } catch {
+        toastError("Could not switch camera");
+      }
+    })();
+  }, []);
+
   const callType: CallType =
     activeCall?.callType ?? incomingCall?.callType ?? "audio";
   const peerName =
@@ -493,6 +508,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
         endCall,
         toggleMute,
         toggleCamera,
+        switchCamera,
         attachLocalVideo,
       }}
     >

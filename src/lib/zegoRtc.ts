@@ -11,6 +11,7 @@ let publishStreamId: string | null = null;
 let activeRoomId: string | null = null;
 let currentCallType: CallType = "audio";
 let localVideoView: HTMLElement | null = null;
+let currentCameraId: string | null = null;
 const playingStreamIds = new Set<string>();
 const remoteAudioElements = new Map<string, HTMLAudioElement>();
 
@@ -320,6 +321,50 @@ export function setLocalCameraEnabled(enabled: boolean): void {
   engine.mutePublishStreamVideo(localZegoStream, !enabled);
 }
 
+function getActiveCameraId(): string | null {
+  if (currentCameraId) return currentCameraId;
+  try {
+    const track = localZegoStream?.getVideoTracks?.()[0];
+    const id = track?.getSettings?.().deviceId;
+    return id || null;
+  } catch {
+    return null;
+  }
+}
+
+/** How many cameras are available — used to decide whether to show a flip button. */
+export async function getCameraCount(): Promise<number> {
+  if (!engine) return 0;
+  try {
+    const cameras = await engine.getCameras();
+    return cameras.filter((c) => c.deviceID).length;
+  } catch {
+    return 0;
+  }
+}
+
+/** Cycle to the next camera (front ↔ back). Returns true if it switched. */
+export async function switchCamera(): Promise<boolean> {
+  if (!engine || !localZegoStream) return false;
+
+  const cameras = await engine.getCameras();
+  const ids = cameras.map((c) => c.deviceID).filter(Boolean);
+  if (ids.length < 2) return false;
+
+  const active = getActiveCameraId();
+  const currentIndex = active ? ids.indexOf(active) : 0;
+  const nextId = ids[(Math.max(0, currentIndex) + 1) % ids.length];
+
+  await engine.useVideoDevice(localZegoStream, nextId);
+  currentCameraId = nextId;
+
+  // Re-bind the preview so the new camera shows immediately.
+  if (localVideoView) {
+    playLocalPreview();
+  }
+  return true;
+}
+
 export async function leaveCallRoom(): Promise<void> {
   if (!engine) return;
 
@@ -352,4 +397,5 @@ export async function leaveCallRoom(): Promise<void> {
   onRemoteMediaCb = null;
   onRemoteRemovedCb = null;
   currentCallType = "audio";
+  currentCameraId = null;
 }

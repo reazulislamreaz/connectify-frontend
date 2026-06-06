@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useCall } from "@/context/CallContext";
+import { getCameraCount } from "@/lib/zegoRtc";
 import { Avatar } from "@/components/Avatar";
 
 function formatDuration(totalSeconds: number): string {
@@ -36,6 +37,17 @@ function VideoOffIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M12 18.75H4.5a2.25 2.25 0 01-2.25-2.25v-9c0-.621.252-1.183.659-1.591M3 3l18 18" />
+    </svg>
+  );
+}
+
+function CameraFlipIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 7.5a3 3 0 11-6 0 3 3 0 016 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 9.5a2 2 0 012-2h1.2l.9-1.4A1 1 0 018 5.5h1.2M21 14.5a2 2 0 01-2 2h-1.2l-.9 1.4a1 1 0 01-.9.6H14.8" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6.5 13.5l-2 2 2 2M17.5 10.5l2-2-2-2" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.5h6.8M12.7 8.5h6.8" />
     </svg>
   );
 }
@@ -104,6 +116,7 @@ export function CallScreen() {
     endCall,
     toggleMute,
     toggleCamera,
+    switchCamera,
     attachLocalVideo,
   } = useCall();
 
@@ -111,6 +124,7 @@ export function CallScreen() {
   const localViewRef = useRef<HTMLDivElement | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [controlsVisible, setControlsVisible] = useState(true);
+  const [hasMultiCamera, setHasMultiCamera] = useState(false);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isVideo = callType === "video";
@@ -157,6 +171,21 @@ export function CallScreen() {
       attachLocalVideo(null);
     };
   }, [showLocalPreview, phase, attachLocalVideo]);
+
+  // Only offer the flip button when a second camera exists (e.g. phones).
+  useEffect(() => {
+    let cancelled = false;
+    if (isVideo && (phase === "active" || phase === "connecting")) {
+      void getCameraCount().then((count) => {
+        if (!cancelled) setHasMultiCamera(count > 1);
+      });
+    } else {
+      setHasMultiCamera(false);
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [isVideo, phase]);
 
   // Auto-hide controls during an active video call.
   const revealControls = useCallback(() => {
@@ -345,6 +374,12 @@ export function CallScreen() {
                 ) : (
                   <VideoIcon className="h-6 w-6" />
                 )}
+              </ControlButton>
+            )}
+
+            {isVideo && hasMultiCamera && (
+              <ControlButton onClick={switchCamera} label="Switch camera">
+                <CameraFlipIcon className="h-6 w-6" />
               </ControlButton>
             )}
 
