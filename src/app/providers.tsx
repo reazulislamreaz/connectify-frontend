@@ -6,8 +6,7 @@ import { QueryLoadingBar } from "@/components/QueryLoadingBar";
 import { AuthProvider } from "@/context/AuthContext";
 import { ChatProvider } from "@/context/ChatContext";
 import { CallProvider } from "@/context/CallContext";
-import { IncomingCallModal } from "@/components/IncomingCallModal";
-import { ActiveCallBar } from "@/components/ActiveCallBar";
+import { CallScreen } from "@/components/CallScreen";
 import { MessageSoundUnlock } from "@/components/MessageSoundUnlock";
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -19,8 +18,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <ChatProvider>
         {children}
         <MessageSoundUnlock />
-        <IncomingCallModal />
-        <ActiveCallBar />
+        <CallScreen />
         <Toaster
           position="top-center"
           containerClassName="!top-4 sm:!top-6"

@@ -79,6 +79,7 @@ export function MessageBubble({
         callDuration={message.callDuration ?? 0}
         isCaller={isOwn}
         createdAt={message.createdAt}
+        callType={message.callType}
       />
     );
   }

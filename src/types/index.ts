@@ -47,6 +47,8 @@ export type CallLogStatus =
   | "busy"
   | "disconnected";
 
+export type CallType = "audio" | "video";
+
 export interface MessageReply {
   id: string;
   senderId: string;
@@ -67,6 +69,7 @@ export interface Message {
   voiceDuration?: number;
   callStatus?: CallLogStatus;
   callDuration?: number;
+  callType?: CallType;
   read: boolean;
   readAt?: string;
   isDeleted?: boolean;
@@ -86,6 +89,7 @@ export interface ChatListItem {
     voiceDuration?: number;
     callStatus?: CallLogStatus;
     callDuration?: number;
+    callType?: CallType;
     isDeleted?: boolean;
     senderId: string;
     createdAt: string;

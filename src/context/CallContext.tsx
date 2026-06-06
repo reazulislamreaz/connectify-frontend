@@ -11,10 +11,17 @@ import {
 } from "react";
 import { api } from "@/lib/api";
 import { connectSocket, getSocket } from "@/lib/socket";
-import { joinAudioRoom, leaveAudioRoom, setLocalAudioMuted } from "@/lib/zegoRtc";
+import {
+  joinCallRoom,
+  leaveCallRoom,
+  setLocalAudioMuted,
+  setLocalCameraEnabled,
+  setLocalVideoView,
+} from "@/lib/zegoRtc";
 import { useAuth } from "@/context/AuthContext";
 import type {
   CallPhase,
+  CallType,
   IncomingCallPayload,
   ZegoCallConfig,
   ZegoTokenResponse,
@@ -32,6 +39,7 @@ interface ActiveCallState {
   peerId: string;
   peerName: string;
   isCaller: boolean;
+  callType: CallType;
 }
 
 interface CallContextType {
@@ -39,12 +47,17 @@ interface CallContextType {
   incomingCall: IncomingCallPayload | null;
   activeCall: ActiveCallState | null;
   muted: boolean;
-  startCall: (calleeId: string, calleeName: string) => void;
+  cameraOff: boolean;
+  callType: CallType;
+  remoteStream: MediaStream | null;
+  startCall: (calleeId: string, calleeName: string, callType?: CallType) => void;
   acceptCall: () => void;
   rejectCall: () => void;
   cancelCall: () => void;
   endCall: () => void;
   toggleMute: () => void;
+  toggleCamera: () => void;
+  attachLocalVideo: (view: HTMLElement | null) => void;
 }
 
 const CallContext = createContext<CallContextType | undefined>(undefined);
@@ -57,6 +70,8 @@ export function CallProvider({ children }: { children: ReactNode }) {
   );
   const [activeCall, setActiveCall] = useState<ActiveCallState | null>(null);
   const [muted, setMuted] = useState(false);
+  const [cameraOff, setCameraOff] = useState(false);
+  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const zegoConfigRef = useRef<ZegoCallConfig | null>(null);
   const activeCallRef = useRef<ActiveCallState | null>(null);
   const phaseRef = useRef<CallPhase>("idle");
@@ -127,6 +142,8 @@ export function CallProvider({ children }: { children: ReactNode }) {
     setIncomingCall(null);
     setActiveCall(null);
     setMuted(false);
+    setCameraOff(false);
+    setRemoteStream(null);
   }, []);
 
   useEffect(() => {
@@ -187,25 +204,38 @@ export function CallProvider({ children }: { children: ReactNode }) {
           );
         }
 
-        await joinAudioRoom({
+        const isVideo = call.callType === "video";
+        await joinCallRoom({
           appId,
           serverUrl,
           roomId: call.roomId,
           token: tokenData.token,
           userId: user.id,
           userName: user.name,
+          video: isVideo,
           onRemoteStream: () => {
             setPhase("active");
+          },
+          onRemoteMedia: (_streamId, stream) => {
+            setRemoteStream(stream);
+            setPhase("active");
+          },
+          onRemoteRemoved: () => {
+            setRemoteStream(null);
           },
         });
 
         setPhase("active");
         if (!remoteConnectedToastRef.current) {
           remoteConnectedToastRef.current = true;
-          toastSuccess("Call connected — you can hear each other");
+          toastSuccess(
+            isVideo
+              ? "Call connected — you can see and hear each other"
+              : "Call connected — you can hear each other",
+          );
         }
       } catch (err) {
-        await leaveAudioRoom();
+        await leaveCallRoom();
         const message =
           err instanceof Error ? err.message : "Could not connect audio call";
         const callId = call.callId;
@@ -226,13 +256,13 @@ export function CallProvider({ children }: { children: ReactNode }) {
     if (call) {
       getSocket().emit("call:end", { callId: call.callId });
     }
-    void leaveAudioRoom();
+    void leaveCallRoom();
     resetCallState();
   }, [resetCallState]);
 
   const handleCallEnded = useCallback(
     (reason?: string) => {
-      void leaveAudioRoom();
+      void leaveCallRoom();
       resetCallState();
       if (reason === "rejected") {
         toastError("Call declined");
@@ -291,7 +321,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
   }, [user, connectZego, handleCallEnded]);
 
   const startCall = useCallback(
-    (calleeId: string, calleeName: string) => {
+    (calleeId: string, calleeName: string, callType: CallType = "audio") => {
       if (!user || phase !== "idle") return;
 
       void (async () => {
@@ -301,10 +331,10 @@ export function CallProvider({ children }: { children: ReactNode }) {
         setPhase("outgoing");
         getSocket().emit(
           "call:invite",
-          { calleeId },
+          { calleeId, callType },
           (response: {
             success: boolean;
-            data?: { callId: string; roomId: string };
+            data?: { callId: string; roomId: string; callType?: CallType };
             message?: string;
           }) => {
             if (!response.success || !response.data) {
@@ -319,6 +349,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
               peerId: calleeId,
               peerName: calleeName,
               isCaller: true,
+              callType: response.data.callType ?? callType,
             };
             setActiveCall(call);
             activeCallRef.current = call;
@@ -341,6 +372,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
       peerId: incomingCall.callerId,
       peerName: incomingCall.callerName,
       isCaller: false,
+      callType: incomingCall.callType ?? "audio",
     };
     setActiveCall(call);
     activeCallRef.current = call;
@@ -397,7 +429,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
     } else {
       getSocket().emit("call:end", { callId: call.callId });
     }
-    void leaveAudioRoom();
+    void leaveCallRoom();
     resetCallState();
   }, [resetCallState]);
 
@@ -409,6 +441,21 @@ export function CallProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const toggleCamera = useCallback(() => {
+    setCameraOff((prev) => {
+      const next = !prev;
+      setLocalCameraEnabled(!next);
+      return next;
+    });
+  }, []);
+
+  const attachLocalVideo = useCallback((view: HTMLElement | null) => {
+    setLocalVideoView(view);
+  }, []);
+
+  const callType: CallType =
+    activeCall?.callType ?? incomingCall?.callType ?? "audio";
+
   return (
     <CallContext.Provider
       value={{
@@ -416,12 +463,17 @@ export function CallProvider({ children }: { children: ReactNode }) {
         incomingCall,
         activeCall,
         muted,
+        cameraOff,
+        callType,
+        remoteStream,
         startCall,
         acceptCall,
         rejectCall,
         cancelCall,
         endCall,
         toggleMute,
+        toggleCamera,
+        attachLocalVideo,
       }}
     >
       {children}

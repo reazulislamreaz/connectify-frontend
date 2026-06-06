@@ -1,4 +1,4 @@
-import type { CallLogStatus } from "@/types";
+import type { CallLogStatus, CallType } from "@/types";
 
 export function formatCallDuration(seconds: number): string {
   if (seconds < 60) return `${seconds} sec`;
@@ -12,25 +12,28 @@ export function getCallLogLabel(
   callStatus: CallLogStatus,
   isCaller: boolean,
   durationSeconds = 0,
+  callType: CallType = "audio",
 ): string {
+  const kind = callType === "video" ? "video call" : "voice call";
+  const Kind = callType === "video" ? "Video call" : "Voice call";
+  const Missed = callType === "video" ? "Missed video call" : "Missed voice call";
+
   switch (callStatus) {
     case "completed":
       return isCaller
-        ? `Outgoing voice call · ${formatCallDuration(durationSeconds)}`
-        : `Incoming voice call · ${formatCallDuration(durationSeconds)}`;
+        ? `Outgoing ${kind} · ${formatCallDuration(durationSeconds)}`
+        : `Incoming ${kind} · ${formatCallDuration(durationSeconds)}`;
     case "disconnected":
-      return isCaller
-        ? `Voice call ended · ${formatCallDuration(durationSeconds)}`
-        : `Voice call ended · ${formatCallDuration(durationSeconds)}`;
+      return `${Kind} ended · ${formatCallDuration(durationSeconds)}`;
     case "rejected":
-      return isCaller ? "Voice call · Declined" : "Voice call · Declined";
+      return `${Kind} · Declined`;
     case "cancelled":
-      return isCaller ? "Voice call · Cancelled" : "Missed voice call";
+      return isCaller ? `${Kind} · Cancelled` : Missed;
     case "missed":
-      return isCaller ? "Voice call · No answer" : "Missed voice call";
+      return isCaller ? `${Kind} · No answer` : Missed;
     case "busy":
-      return isCaller ? "Voice call · Busy" : "Voice call · Busy";
+      return `${Kind} · Busy`;
     default:
-      return "Voice call";
+      return Kind;
   }
 }

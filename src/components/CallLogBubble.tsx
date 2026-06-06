@@ -1,24 +1,31 @@
 "use client";
 
 import { getCallLogLabel } from "@/lib/callLabel";
-import type { CallLogStatus } from "@/types";
+import type { CallLogStatus, CallType } from "@/types";
 
 interface CallLogBubbleProps {
   callStatus: CallLogStatus;
   callDuration: number;
   isCaller: boolean;
   createdAt: string;
+  callType?: CallType;
 }
 
-function CallIcon({ missed }: { missed: boolean }) {
+function CallIcon({ missed, video }: { missed: boolean; video: boolean }) {
+  const className = `h-4 w-4 shrink-0 ${missed ? "text-rose-500" : "text-brand-600"}`;
+  if (video) {
+    return (
+      <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z"
+        />
+      </svg>
+    );
+  }
   return (
-    <svg
-      className={`h-4 w-4 shrink-0 ${missed ? "text-rose-500" : "text-brand-600"}`}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-    >
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -33,8 +40,9 @@ export function CallLogBubble({
   callDuration,
   isCaller,
   createdAt,
+  callType = "audio",
 }: CallLogBubbleProps) {
-  const label = getCallLogLabel(callStatus, isCaller, callDuration);
+  const label = getCallLogLabel(callStatus, isCaller, callDuration, callType);
   const isMissed =
     callStatus === "missed" ||
     callStatus === "rejected" ||
@@ -54,7 +62,7 @@ export function CallLogBubble({
             : "bg-white/90 text-slate-600 ring-1 ring-slate-200/80"
         }`}
       >
-        <CallIcon missed={isMissed} />
+        <CallIcon missed={isMissed} video={callType === "video"} />
         <span className="font-medium">{label}</span>
         <span className="text-slate-400">·</span>
         <span className="text-slate-400">{time}</span>

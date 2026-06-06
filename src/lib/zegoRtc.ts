@@ -1,4 +1,4 @@
-import type { ZegoTokenResponse } from "@/types/call";
+import type { CallType, ZegoTokenResponse } from "@/types/call";
 
 type ZegoEngine = InstanceType<
   typeof import("zego-express-engine-webrtc").ZegoExpressEngine
@@ -9,8 +9,14 @@ let engine: ZegoEngine | null = null;
 let localZegoStream: ZegoLocalStream | null = null;
 let publishStreamId: string | null = null;
 let activeRoomId: string | null = null;
+let currentCallType: CallType = "audio";
+let localVideoView: HTMLElement | null = null;
 const playingStreamIds = new Set<string>();
 const remoteAudioElements = new Map<string, HTMLAudioElement>();
+
+let onRemoteMediaCb: ((streamId: string, stream: MediaStream) => void) | null =
+  null;
+let onRemoteRemovedCb: ((streamId: string) => void) | null = null;
 
 function formatZegoError(err: unknown): string {
   if (err instanceof Error && err.message) return err.message;
@@ -22,7 +28,7 @@ function formatZegoError(err: unknown): string {
     if (msg) return msg;
     if (code) return `Zego error ${code}`;
   }
-  return "Could not connect audio call";
+  return "Could not connect the call";
 }
 
 function roomLoginError(errorCode: number, extendedData: string): Error {
@@ -86,7 +92,7 @@ function waitForPublishReady(
   return new Promise((resolve, reject) => {
     const timer = window.setTimeout(() => {
       zg.off("publisherStateUpdate", onPublish);
-      reject(new Error("Timed out publishing audio — check Zego credentials on the server"));
+      reject(new Error("Timed out publishing media — check Zego credentials on the server"));
     }, timeoutMs);
 
     const onPublish = (result: {
@@ -108,7 +114,7 @@ function waitForPublishReady(
         zg.off("publisherStateUpdate", onPublish);
         const hint =
           result.errorCode === 1103044
-            ? "Audio stream error — check microphone permission and try again"
+            ? "Media stream error — check microphone/camera permission and try again"
             : result.extendedData || `Publish failed (${result.errorCode})`;
         reject(new Error(hint));
       }
@@ -118,19 +124,23 @@ function waitForPublishReady(
     zg.on("publisherStateUpdate", onPublish);
   });
 }
-export async function joinAudioRoom(params: {
+
+export async function joinCallRoom(params: {
   appId: number;
   serverUrl: string;
   roomId: string;
   token: string;
   userId: string;
   userName: string;
+  video: boolean;
   onRemoteStream: (streamId: string) => void;
+  onRemoteMedia?: (streamId: string, stream: MediaStream) => void;
+  onRemoteRemoved?: (streamId: string) => void;
 }): Promise<ZegoEngine> {
   const { ZegoExpressEngine } = await import("zego-express-engine-webrtc");
 
   if (engine) {
-    await leaveAudioRoom();
+    await leaveCallRoom();
   }
 
   const zg = new ZegoExpressEngine(params.appId, params.serverUrl, {
@@ -138,6 +148,9 @@ export async function joinAudioRoom(params: {
   });
   engine = zg;
   activeRoomId = params.roomId;
+  currentCallType = params.video ? "video" : "audio";
+  onRemoteMediaCb = params.onRemoteMedia ?? null;
+  onRemoteRemovedCb = params.onRemoteRemoved ?? null;
 
   const systemCheck = await zg.checkSystemRequirements();
   if (!systemCheck.webRTC) {
@@ -154,12 +167,13 @@ export async function joinAudioRoom(params: {
       if (updateType === "ADD") {
         for (const stream of streamList) {
           if (stream.streamID === publishStreamId) continue;
-          await playRemoteAudio(zg, stream.streamID);
+          await playRemoteStream(zg, stream.streamID);
           params.onRemoteStream(stream.streamID);
         }
       } else if (updateType === "DELETE") {
         for (const stream of streamList) {
-          stopRemoteAudio(stream.streamID);
+          stopRemoteStream(stream.streamID);
+          onRemoteRemovedCb?.(stream.streamID);
         }
       }
     },
@@ -195,22 +209,28 @@ export async function joinAudioRoom(params: {
     await roomConnected;
     // SDK 3.x: must use createZegoStream (createStream / raw getUserMedia break publish)
     localZegoStream = await zg.createZegoStream({
-      camera: { video: false, audio: true },
+      camera: { video: params.video, audio: true },
     });
 
-    publishStreamId = `audio_${params.userId}`;
+    if (params.video) {
+      playLocalPreview();
+    }
+
+    publishStreamId = `${params.video ? "video" : "audio"}_${params.userId}`;
     const publishReady = waitForPublishReady(zg, publishStreamId);
     const published = zg.startPublishingStream(publishStreamId, localZegoStream);
     if (!published) {
-      throw new Error("Failed to start publishing audio");
+      throw new Error("Failed to start publishing media");
     }
 
     await publishReady;
   } catch (err) {
-    await leaveAudioRoom();
+    await leaveCallRoom();
     if (err instanceof Error && /permission|notallowed|denied/i.test(err.message)) {
       throw new Error(
-        "Microphone blocked — allow mic access in the browser and try again",
+        params.video
+          ? "Camera/microphone blocked — allow access in the browser and try again"
+          : "Microphone blocked — allow mic access in the browser and try again",
       );
     }
     throw err instanceof Error ? err : new Error(formatZegoError(err));
@@ -231,11 +251,19 @@ async function fetchFreshToken(roomId: string): Promise<ZegoTokenResponse> {
   return res.data;
 }
 
-async function playRemoteAudio(zg: ZegoEngine, streamId: string): Promise<void> {
+async function playRemoteStream(zg: ZegoEngine, streamId: string): Promise<void> {
   if (playingStreamIds.has(streamId)) return;
 
   const mediaStream = await zg.startPlayingStream(streamId);
+  playingStreamIds.add(streamId);
 
+  if (currentCallType === "video") {
+    // Render the remote stream into the on-screen <video> element (carries audio too).
+    onRemoteMediaCb?.(streamId, mediaStream);
+    return;
+  }
+
+  // Audio call: play through a hidden <audio> element so it works without any UI.
   const audio = document.createElement("audio");
   audio.autoplay = true;
   audio.srcObject = mediaStream;
@@ -246,11 +274,10 @@ async function playRemoteAudio(zg: ZegoEngine, streamId: string): Promise<void> 
     // Autoplay blocked until further user interaction
   });
 
-  playingStreamIds.add(streamId);
   remoteAudioElements.set(streamId, audio);
 }
 
-function stopRemoteAudio(streamId: string): void {
+function stopRemoteStream(streamId: string): void {
   if (engine) {
     engine.stopPlayingStream(streamId);
   }
@@ -263,12 +290,37 @@ function stopRemoteAudio(streamId: string): void {
   playingStreamIds.delete(streamId);
 }
 
+function playLocalPreview(): void {
+  if (!localZegoStream || !localVideoView) return;
+  try {
+    localZegoStream.playVideo(localVideoView, {
+      mirror: true,
+      objectFit: "cover",
+    });
+  } catch {
+    // Preview will be retried when the view element is (re)attached.
+  }
+}
+
+/** Attach (or detach with null) the DOM container that renders the local camera preview. */
+export function setLocalVideoView(view: HTMLElement | null): void {
+  localVideoView = view;
+  if (view && currentCallType === "video" && localZegoStream) {
+    playLocalPreview();
+  }
+}
+
 export function setLocalAudioMuted(muted: boolean): void {
   if (!engine || !localZegoStream) return;
   engine.mutePublishStreamAudio(localZegoStream, muted);
 }
 
-export async function leaveAudioRoom(): Promise<void> {
+export function setLocalCameraEnabled(enabled: boolean): void {
+  if (!engine || !localZegoStream) return;
+  engine.mutePublishStreamVideo(localZegoStream, !enabled);
+}
+
+export async function leaveCallRoom(): Promise<void> {
   if (!engine) return;
 
   const zg = engine;
@@ -285,7 +337,7 @@ export async function leaveAudioRoom(): Promise<void> {
   }
 
   for (const streamId of [...playingStreamIds]) {
-    stopRemoteAudio(streamId);
+    stopRemoteStream(streamId);
   }
 
   if (roomId) {
@@ -296,4 +348,8 @@ export async function leaveAudioRoom(): Promise<void> {
 
   engine = null;
   activeRoomId = null;
+  localVideoView = null;
+  onRemoteMediaCb = null;
+  onRemoteRemovedCb = null;
+  currentCallType = "audio";
 }

@@ -1,5 +1,5 @@
 import { getCallLogLabel } from "@/lib/callLabel";
-import type { CallLogStatus } from "@/types";
+import type { CallLogStatus, CallType } from "@/types";
 
 interface PreviewMessage {
   messageType?: "text" | "call";
@@ -8,6 +8,7 @@ interface PreviewMessage {
   voiceUrl?: string;
   callStatus?: CallLogStatus;
   callDuration?: number;
+  callType?: CallType;
   senderId?: string;
 }
 
@@ -31,6 +32,7 @@ export function getMessagePreview(
       message.callStatus,
       callerIsViewer,
       message.callDuration ?? 0,
+      message.callType,
     );
     return isOwn ? `You: ${label}` : label;
   }

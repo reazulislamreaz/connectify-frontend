@@ -440,7 +440,31 @@ export default function ChatPage() {
               {otherUser && (
                 <button
                   type="button"
-                  onClick={() => startCall(otherUserId, otherUser.name)}
+                  onClick={() => startCall(otherUserId, otherUser.name, "video")}
+                  disabled={callPhase !== "idle"}
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white/90 transition hover:bg-white/10 disabled:opacity-40"
+                  aria-label="Video call"
+                  title="Video call"
+                >
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z"
+                    />
+                  </svg>
+                </button>
+              )}
+              {otherUser && (
+                <button
+                  type="button"
+                  onClick={() => startCall(otherUserId, otherUser.name, "audio")}
                   disabled={callPhase !== "idle"}
                   className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white/90 transition hover:bg-white/10 disabled:opacity-40"
                   aria-label="Voice call"
