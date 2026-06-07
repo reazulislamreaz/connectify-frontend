@@ -22,6 +22,26 @@ export function clearToken(): void {
   localStorage.removeItem("token");
 }
 
+/**
+ * Read the `role` claim from the JWT (UI gating only — the server still enforces
+ * authorization). Survives reloads since the token lives in localStorage, so the
+ * admin nav doesn't depend on the (cacheable) /auth/me response.
+ */
+export function getTokenRole(): string | undefined {
+  const token = getToken();
+  if (!token) return undefined;
+  try {
+    const part = token.split(".")[1];
+    if (!part) return undefined;
+    const b64 = part.replace(/-/g, "+").replace(/_/g, "/");
+    const pad = b64.length % 4 ? "=".repeat(4 - (b64.length % 4)) : "";
+    const claims = JSON.parse(atob(b64 + pad)) as { role?: unknown };
+    return typeof claims.role === "string" ? claims.role : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export function getUploadUrl(path?: string): string {
   if (!path) return "";
   if (path.startsWith("http://") || path.startsWith("https://")) return path;

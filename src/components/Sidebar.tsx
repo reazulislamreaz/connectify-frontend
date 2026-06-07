@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
+import { getTokenRole } from "@/lib/api";
 import { prefetchChats } from "@/lib/prefetch";
 import { isStaff } from "./admin/RequireAdmin";
 import { ADMIN_USE_MOCK } from "@/hooks/adminQueries";
@@ -142,10 +143,11 @@ export function Sidebar() {
   const queryClient = useQueryClient();
   const isChatDetail = pathname.startsWith("/chat/") && pathname !== "/chat";
 
-  // Staff see an extra Admin entry. In demo (mock) mode the backend has no role
-  // yet, so it's shown to any signed-in user; flip ADMIN_USE_MOCK to gate it.
+  // Staff see an extra Admin entry. Role comes from /auth/me, falling back to the
+  // JWT claim so it's reliable on reload (not dependent on the /auth/me cache).
   const items = useMemo(() => {
-    const showAdmin = ADMIN_USE_MOCK ? !!user : isStaff(user?.role);
+    const role = user?.role ?? getTokenRole();
+    const showAdmin = ADMIN_USE_MOCK ? !!user : isStaff(role);
     return showAdmin ? [...navItems, adminNavItem] : navItems;
   }, [user]);
 
