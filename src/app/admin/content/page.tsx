@@ -9,6 +9,7 @@ import {
   useDeletePost,
   useUpdatePost,
 } from "@/hooks/adminQueries";
+import { useIsAdmin } from "@/components/admin/RequireAdmin";
 import type { AdminPostsFilter } from "@/lib/adminKeys";
 import { toastConfirm } from "@/lib/toastConfirm";
 import { toastError, toastSuccess } from "@/lib/toast";
@@ -26,6 +27,7 @@ export default function AdminContentPage() {
   const { data, isPending, isFetching } = useAdminPosts(filter);
   const updatePost = useUpdatePost();
   const deletePost = useDeletePost();
+  const isAdmin = useIsAdmin();
 
   const toggleHidden = async (p: AdminPostRow) => {
     try {
@@ -115,14 +117,17 @@ export default function AdminContentPage() {
           >
             {p.hidden ? "Unhide" : "Hide"}
           </button>
-          <button
-            type="button"
-            onClick={() => remove(p)}
-            disabled={deletePost.isPending}
-            className="rounded-lg bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-600 transition hover:bg-rose-100 disabled:opacity-40"
-          >
-            Delete
-          </button>
+          {/* Hard delete is admin-only (backend gates it via requireAdmin). */}
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={() => remove(p)}
+              disabled={deletePost.isPending}
+              className="rounded-lg bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-600 transition hover:bg-rose-100 disabled:opacity-40"
+            >
+              Delete
+            </button>
+          )}
         </div>
       ),
     },

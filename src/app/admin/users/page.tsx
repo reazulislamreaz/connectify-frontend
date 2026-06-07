@@ -16,6 +16,7 @@ import {
   useForceLogout,
   useUpdateUser,
 } from "@/hooks/adminQueries";
+import { useIsAdmin } from "@/components/admin/RequireAdmin";
 import type { AdminUsersFilter } from "@/lib/adminKeys";
 import { toastConfirm } from "@/lib/toastConfirm";
 import { toastError, toastSuccess } from "@/lib/toast";
@@ -42,6 +43,7 @@ export default function AdminUsersPage() {
   const { data, isPending, isFetching } = useAdminUsers(filter);
   const updateUser = useUpdateUser();
   const forceLogout = useForceLogout();
+  const isAdmin = useIsAdmin();
 
   const resetPage = () => setPage(1);
 
@@ -102,20 +104,27 @@ export default function AdminUsersPage() {
     {
       key: "role",
       header: "Role",
-      render: (u) => (
-        <select
-          value={u.role}
-          onChange={(e) => changeRole(u, e.target.value as AdminRole)}
-          disabled={updateUser.isPending}
-          className="rounded-lg border border-surface-border bg-white px-2 py-1 text-xs font-medium capitalize text-slate-700 outline-none focus:border-brand-500"
-        >
-          {(["user", "moderator", "admin"] as AdminRole[]).map((r) => (
-            <option key={r} value={r}>
-              {r}
-            </option>
-          ))}
-        </select>
-      ),
+      // Only admins may change roles (backend enforces it too); moderators see
+      // a read-only badge.
+      render: (u) =>
+        isAdmin ? (
+          <select
+            value={u.role}
+            onChange={(e) => changeRole(u, e.target.value as AdminRole)}
+            disabled={updateUser.isPending}
+            className="rounded-lg border border-surface-border bg-white px-2 py-1 text-xs font-medium capitalize text-slate-700 outline-none focus:border-brand-500"
+          >
+            {(["user", "moderator", "admin"] as AdminRole[]).map((r) => (
+              <option key={r} value={r}>
+                {r}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <Badge tone={roleTone(u.role)} className="capitalize">
+            {u.role}
+          </Badge>
+        ),
     },
     {
       key: "status",

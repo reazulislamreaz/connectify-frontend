@@ -13,6 +13,16 @@ export function isStaff(role?: string): boolean {
 }
 
 /**
+ * True when the current user may use admin-only controls (role changes, hard
+ * deletes). Moderators get `false` so those controls stay hidden — matching the
+ * backend's requireAdmin gate. In demo (mock) mode everyone counts as admin.
+ */
+export function useIsAdmin(): boolean {
+  const { user } = useAuth();
+  return ADMIN_USE_MOCK ? true : user?.role === "admin";
+}
+
+/**
  * Role gate for /admin. The real security boundary is the backend's
  * requireRole middleware — this only keeps non-staff out of the UI.
  *
