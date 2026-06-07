@@ -15,7 +15,10 @@ const STATUS_TABS: (ReportStatus | "all")[] = [
   "all",
 ];
 
-const TARGET_TONE: Record<ReportTargetType, "brand" | "violet" | "amber" | "slate"> = {
+const TARGET_TONE: Record<
+  ReportTargetType,
+  "brand" | "violet" | "amber" | "slate"
+> = {
   post: "brand",
   comment: "violet",
   user: "amber",
@@ -88,7 +91,10 @@ function ReportCard({ report }: { report: Report }) {
             </button>
           </div>
         ) : (
-          <Badge tone={report.status === "resolved" ? "green" : "slate"} className="capitalize">
+          <Badge
+            tone={report.status === "resolved" ? "green" : "slate"}
+            className="capitalize"
+          >
             {report.status}
           </Badge>
         )}
@@ -152,7 +158,7 @@ export default function AdminReportsPage() {
         </div>
       ) : (
         <div className="rounded-2xl border border-dashed border-surface-border bg-white py-16 text-center text-sm text-slate-400">
-          No {status === "all" ? "" : status} reports 🎉
+          No {status === "all" ? "" : status} reports
         </div>
       )}
 
