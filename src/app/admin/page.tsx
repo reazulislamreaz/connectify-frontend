@@ -2,6 +2,7 @@
 
 import { StatCard } from "@/components/admin/StatCard";
 import { MiniAreaChart } from "@/components/admin/MiniAreaChart";
+import { AdminOverviewSkeleton } from "@/components/admin/AdminSkeletons";
 import { useAdminStats } from "@/hooks/adminQueries";
 
 const nf = new Intl.NumberFormat();
@@ -29,6 +30,9 @@ function ChartCard({
 export default function AdminOverviewPage() {
   const { data, isPending } = useAdminStats();
   const s = data;
+
+  // First load (no cached data yet) → show a skeleton that matches the layout.
+  if (isPending) return <AdminOverviewSkeleton />;
 
   return (
     <div className="space-y-5">
