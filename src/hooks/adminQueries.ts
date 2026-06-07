@@ -65,8 +65,10 @@ export function useAdminStats() {
       const res = await api<ApiResponse<AdminStats>>("/admin/stats");
       return res.data;
     },
-    staleTime: 20_000,
-    refetchInterval: 30_000,
+    staleTime: 30_000,
+    // Stats change slowly; 60s keeps the dashboard fresh without hammering the
+    // API. TanStack Query already pauses this while the tab is backgrounded.
+    refetchInterval: 60_000,
   });
 }
 
@@ -78,8 +80,10 @@ export function useAdminHealth() {
       const res = await api<ApiResponse<SystemHealth>>("/admin/health");
       return res.data;
     },
-    staleTime: 10_000,
-    refetchInterval: 15_000,
+    staleTime: 20_000,
+    // 30s is responsive enough for health; pauses automatically when the tab
+    // is in the background.
+    refetchInterval: 30_000,
   });
 }
 
