@@ -94,24 +94,25 @@ function playRingbackBeep(
   }
 }
 
-// Bright marimba arpeggio loop (A major), reminiscent of a messenger ringtone.
-const A5 = 880;
+// WhatsApp-style marimba ringtone: a bright, bouncing phrase that rises to an
+// accented peak and gently resolves, then loops after a short gap. Notes carry
+// their own volume so the peak lands as a natural accent. [offset, freq, volume]
+const FS5 = 739.99;
 const B5 = 987.77;
 const CS6 = 1108.73;
-const E6 = 1318.51;
-const GS6 = 1661.22;
-const A6 = 1760;
-const INCOMING_MELODY: Array<[number, number]> = [
-  [0.0, A5],
-  [0.15, CS6],
-  [0.3, E6],
-  [0.45, A6],
-  [0.6, GS6],
-  [0.75, E6],
-  [0.9, CS6],
-  [1.05, B5],
+const DS6 = 1244.51;
+const FS6 = 1479.98;
+const INCOMING_MELODY: Array<[number, number, number]> = [
+  [0.0, FS5, 0.18],
+  [0.13, B5, 0.2],
+  [0.26, DS6, 0.22],
+  [0.39, FS6, 0.27], // accent peak
+  [0.52, DS6, 0.22],
+  [0.65, B5, 0.2],
+  [0.92, CS6, 0.2],
+  [1.05, FS5, 0.17], // soft resolve
 ];
-const INCOMING_LOOP_MS = 2400;
+const INCOMING_LOOP_MS = 2200;
 
 export async function startIncomingRingtone(): Promise<void> {
   if (activeMode === "incoming") return;
@@ -123,8 +124,8 @@ export async function startIncomingRingtone(): Promise<void> {
 
   const ring = () => {
     const base = ctx.currentTime + 0.02;
-    for (const [offset, freq] of INCOMING_MELODY) {
-      playMarimbaNote(ctx, out, freq, base + offset, 0.5, 0.22);
+    for (const [offset, freq, volume] of INCOMING_MELODY) {
+      playMarimbaNote(ctx, out, freq, base + offset, 0.5, volume);
     }
   };
 
