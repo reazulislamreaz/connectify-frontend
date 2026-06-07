@@ -1,10 +1,13 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
 import { prefetchChats } from "@/lib/prefetch";
+import { isStaff } from "./admin/RequireAdmin";
+import { ADMIN_USE_MOCK } from "@/hooks/adminQueries";
 import { Avatar } from "./Avatar";
 import { SignOutButton } from "./SignOutButton";
 
@@ -65,6 +68,16 @@ const navItems = [
     ),
   },
 ];
+
+const adminNavItem = {
+  href: "/admin",
+  label: "Admin",
+  icon: (
+    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+    </svg>
+  ),
+};
 
 function NavLink({
   href,
@@ -129,6 +142,13 @@ export function Sidebar() {
   const queryClient = useQueryClient();
   const isChatDetail = pathname.startsWith("/chat/") && pathname !== "/chat";
 
+  // Staff see an extra Admin entry. In demo (mock) mode the backend has no role
+  // yet, so it's shown to any signed-in user; flip ADMIN_USE_MOCK to gate it.
+  const items = useMemo(() => {
+    const showAdmin = ADMIN_USE_MOCK ? !!user : isStaff(user?.role);
+    return showAdmin ? [...navItems, adminNavItem] : navItems;
+  }, [user]);
+
   const warmRoute = (href: string) => {
     if (href === "/chat") prefetchChats(queryClient);
   };
@@ -155,7 +175,7 @@ export function Sidebar() {
         </div>
 
         <nav className="flex-1 space-y-1 overflow-y-auto p-3 lg:p-4">
-          {navItems.map((item) => {
+          {items.map((item) => {
             const isActive =
               pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (
@@ -176,8 +196,12 @@ export function Sidebar() {
 
       {!isChatDetail && (
         <nav className="mobile-bottom-nav fixed bottom-0 left-0 right-0 z-50 border-t border-surface-border bg-white/95 backdrop-blur-lg safe-bottom md:hidden">
-          <div className="grid w-full grid-cols-6 gap-0 px-0.5 py-1.5 xs:gap-0.5 xs:px-1 xs:py-2">
-            {navItems.map((item) => {
+          <div
+            className={`grid w-full gap-0 px-0.5 py-1.5 xs:gap-0.5 xs:px-1 xs:py-2 ${
+              items.length >= 7 ? "grid-cols-7" : "grid-cols-6"
+            }`}
+          >
+            {items.map((item) => {
               const isActive =
                 pathname === item.href || pathname.startsWith(`${item.href}/`);
               return (

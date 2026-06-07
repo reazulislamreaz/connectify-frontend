@@ -33,7 +33,12 @@ interface PostCardProps {
   currentUserId?: string;
 }
 
-export function PostCard({ post, onUpdate, onRemove, currentUserId }: PostCardProps) {
+export function PostCard({
+  post,
+  onUpdate,
+  onRemove,
+  currentUserId,
+}: PostCardProps) {
   const queryClient = useQueryClient();
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState("");
@@ -52,8 +57,7 @@ export function PostCard({ post, onUpdate, onRemove, currentUserId }: PostCardPr
     isFetchingNextPage,
   } = useCommentsInfiniteQuery(post.id, showComments);
 
-  const comments =
-    commentsData?.pages.flatMap((page) => page.comments) ?? [];
+  const comments = commentsData?.pages.flatMap((page) => page.comments) ?? [];
 
   const loadMoreComments = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) {
@@ -74,15 +78,17 @@ export function PostCard({ post, onUpdate, onRemove, currentUserId }: PostCardPr
       (
         old:
           | {
-              pages: { comments: PostComment[]; pagination: { page: number; totalPages: number } }[];
+              pages: {
+                comments: PostComment[];
+                pagination: { page: number; totalPages: number };
+              }[];
               pageParams: number[];
             }
           | undefined,
       ) => {
         if (!old?.pages.length) return old;
         const current = old.pages.flatMap((page) => page.comments);
-        const next =
-          typeof updater === "function" ? updater(current) : updater;
+        const next = typeof updater === "function" ? updater(current) : updater;
         return {
           ...old,
           pages: old.pages.map((page, index) =>
@@ -99,10 +105,9 @@ export function PostCard({ post, onUpdate, onRemove, currentUserId }: PostCardPr
     if (liking) return;
     setLiking(true);
     try {
-      const res = await api<ApiResponse<{ liked: boolean; likesCount: number }>>(
-        `/posts/${post.id}/like`,
-        { method: "POST" }
-      );
+      const res = await api<
+        ApiResponse<{ liked: boolean; likesCount: number }>
+      >(`/posts/${post.id}/like`, { method: "POST" });
       onUpdate(post.id, {
         isLiked: res.data.liked,
         likesCount: res.data.likesCount,
@@ -117,10 +122,13 @@ export function PostCard({ post, onUpdate, onRemove, currentUserId }: PostCardPr
     if (!commentText.trim() || submittingComment) return;
     setSubmittingComment(true);
     try {
-      const res = await api<ApiResponse<PostComment>>(`/posts/${post.id}/comments`, {
-        method: "POST",
-        body: JSON.stringify({ content: commentText.trim() }),
-      });
+      const res = await api<ApiResponse<PostComment>>(
+        `/posts/${post.id}/comments`,
+        {
+          method: "POST",
+          body: JSON.stringify({ content: commentText.trim() }),
+        },
+      );
       setComments((prev) => [...prev, res.data]);
       setCommentText("");
       onUpdate(post.id, { commentsCount: post.commentsCount + 1 });
@@ -148,7 +156,7 @@ export function PostCard({ post, onUpdate, onRemove, currentUserId }: PostCardPr
   const handleSavePost = async (
     content: string,
     removeImage: boolean,
-    newImage?: File
+    newImage?: File,
   ) => {
     const formData = new FormData();
     formData.append("content", content);
@@ -178,13 +186,15 @@ export function PostCard({ post, onUpdate, onRemove, currentUserId }: PostCardPr
     try {
       await api<ApiResponse<{ postId: string }>>(
         `/posts/${post.id}/comments/${commentId}`,
-        { method: "DELETE" }
+        { method: "DELETE" },
       );
       setComments((prev) => prev.filter((c) => c.id !== commentId));
       onUpdate(post.id, { commentsCount: Math.max(0, post.commentsCount - 1) });
       toastSuccess("Comment deleted");
     } catch (err) {
-      toastError(err instanceof Error ? err.message : "Failed to delete comment");
+      toastError(
+        err instanceof Error ? err.message : "Failed to delete comment",
+      );
     }
   };
 
@@ -196,16 +206,18 @@ export function PostCard({ post, onUpdate, onRemove, currentUserId }: PostCardPr
         {
           method: "PATCH",
           body: JSON.stringify({ content: editCommentText.trim() }),
-        }
+        },
       );
       setComments((prev) =>
-        prev.map((c) => (c.id === commentId ? res.data : c))
+        prev.map((c) => (c.id === commentId ? res.data : c)),
       );
       setEditingCommentId(null);
       setEditCommentText("");
       toastSuccess("Comment updated");
     } catch (err) {
-      toastError(err instanceof Error ? err.message : "Failed to update comment");
+      toastError(
+        err instanceof Error ? err.message : "Failed to update comment",
+      );
     }
   };
 
@@ -245,7 +257,10 @@ export function PostCard({ post, onUpdate, onRemove, currentUserId }: PostCardPr
             </button>
             {menuOpen && (
               <>
-                <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setMenuOpen(false)}
+                />
                 <div className="absolute right-0 top-full z-20 mt-1 min-w-[140px] overflow-hidden rounded-xl border border-surface-border bg-white py-1 shadow-lg">
                   <button
                     type="button"
@@ -276,7 +291,9 @@ export function PostCard({ post, onUpdate, onRemove, currentUserId }: PostCardPr
 
       {post.content?.trim() && (
         <div className="px-4 py-3">
-          <p className="whitespace-pre-wrap text-sm text-slate-800">{post.content}</p>
+          <p className="whitespace-pre-wrap text-sm text-slate-800">
+            {post.content}
+          </p>
         </div>
       )}
 
@@ -315,7 +332,12 @@ export function PostCard({ post, onUpdate, onRemove, currentUserId }: PostCardPr
           onClick={() => setShowComments((v) => !v)}
           className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
         >
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg
+            className="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -334,14 +356,22 @@ export function PostCard({ post, onUpdate, onRemove, currentUserId }: PostCardPr
           ) : (
             <div className="mb-3 max-h-60 space-y-3 overflow-y-auto scrollbar-thin">
               {comments.length === 0 ? (
-                <p className="text-center text-sm text-slate-400">No comments yet</p>
+                <p className="text-center text-sm text-slate-400">
+                  No comments yet
+                </p>
               ) : (
                 comments.map((c) => (
                   <div key={c.id} className="flex gap-2">
-                    <Avatar name={c.author.name} src={c.author.profilePicture} size="sm" />
+                    <Avatar
+                      name={c.author.name}
+                      src={c.author.profilePicture}
+                      size="sm"
+                    />
                     <div className="min-w-0 flex-1 rounded-2xl bg-white px-3 py-2 shadow-sm">
                       <div className="flex items-start justify-between gap-2">
-                        <p className="text-xs font-semibold text-slate-800">{c.author.name}</p>
+                        <p className="text-xs font-semibold text-slate-800">
+                          {c.author.name}
+                        </p>
                         {currentUserId === c.author.id && (
                           <div className="flex shrink-0 gap-1">
                             <button
@@ -401,9 +431,13 @@ export function PostCard({ post, onUpdate, onRemove, currentUserId }: PostCardPr
               {hasNextPage && (
                 <div ref={commentsSentinelRef} className="py-2 text-center">
                   {isFetchingNextPage ? (
-                    <span className="text-xs text-slate-400">Loading more comments…</span>
+                    <span className="text-xs text-slate-400">
+                      Loading more comments…
+                    </span>
                   ) : (
-                    <span className="text-xs text-slate-400">Scroll for more comments</span>
+                    <span className="text-xs text-slate-400">
+                      Scroll for more comments
+                    </span>
                   )}
                 </div>
               )}

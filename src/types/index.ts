@@ -10,6 +10,9 @@ export interface UserRelationship {
   requestId?: string;
 }
 
+export type AdminRole = "user" | "moderator" | "admin";
+export type AccountStatus = "active" | "suspended" | "banned";
+
 export interface User {
   id: string;
   name: string;
@@ -24,6 +27,10 @@ export interface User {
   isOnline?: boolean;
   lastSeen?: string;
   relationship?: UserRelationship;
+  /** Staff role. Absent/"user" for normal accounts. Set server-side only. */
+  role?: AdminRole;
+  /** Moderation state. Absent implies "active". */
+  status?: AccountStatus;
 }
 
 export interface AuthResponse {
@@ -129,4 +136,129 @@ export interface PostComment {
   content: string;
   author: PostAuthor;
   createdAt: string;
+}
+
+/* ────────────────────────────── Admin ────────────────────────────── */
+
+export interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface TimePoint {
+  /** ISO date (YYYY-MM-DD) */
+  date: string;
+  count: number;
+}
+
+export interface AdminStats {
+  users: {
+    total: number;
+    active: number;
+    suspended: number;
+    banned: number;
+    onlineNow: number;
+    newToday: number;
+    newThisWeek: number;
+  };
+  content: {
+    postsTotal: number;
+    postsToday: number;
+    commentsToday: number;
+  };
+  /** Counts only — never message content. */
+  messaging: {
+    messagesToday: number;
+    callsToday: number;
+  };
+  reports: {
+    open: number;
+    resolvedToday: number;
+  };
+  series: {
+    signups: TimePoint[];
+    messages: TimePoint[];
+  };
+}
+
+export interface AdminUserRow {
+  id: string;
+  name: string;
+  email: string;
+  profilePicture?: string;
+  role: AdminRole;
+  status: AccountStatus;
+  isOnline: boolean;
+  lastSeen?: string;
+  createdAt: string;
+  postsCount: number;
+  reportsAgainst: number;
+}
+
+export interface AdminUsersResponse {
+  users: AdminUserRow[];
+  pagination: Pagination;
+}
+
+export interface AdminPostRow {
+  id: string;
+  content: string;
+  imageUrl?: string;
+  author: PostAuthor;
+  likesCount: number;
+  commentsCount: number;
+  reportsCount: number;
+  hidden: boolean;
+  createdAt: string;
+}
+
+export interface AdminPostsResponse {
+  posts: AdminPostRow[];
+  pagination: Pagination;
+}
+
+export type ReportTargetType = "post" | "comment" | "user" | "message";
+export type ReportStatus = "open" | "resolved" | "dismissed";
+
+export interface Report {
+  id: string;
+  reporter: PostAuthor;
+  targetType: ReportTargetType;
+  targetId: string;
+  /** Short, privacy-safe preview of the reported target. */
+  targetPreview: string;
+  reason: string;
+  note?: string;
+  status: ReportStatus;
+  createdAt: string;
+}
+
+export interface AdminReportsResponse {
+  reports: Report[];
+  pagination: Pagination;
+}
+
+export interface AuditEntry {
+  id: string;
+  actor: PostAuthor;
+  action: string;
+  targetType: string;
+  targetId: string;
+  metadata?: Record<string, string>;
+  createdAt: string;
+}
+
+export interface AdminAuditResponse {
+  entries: AuditEntry[];
+  pagination: Pagination;
+}
+
+export interface SystemHealth {
+  socketConnections: number;
+  apiOk: boolean;
+  dbOk: boolean;
+  uptimeSeconds: number;
+  presenceCount: number;
 }
