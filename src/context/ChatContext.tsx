@@ -19,7 +19,7 @@ import {
   applyUserPresence,
   type UserPresencePayload,
 } from "@/lib/presenceCache";
-import { useChatsQuery } from "@/hooks/queries";
+import { useChatsQuery, type MessagesInfiniteData } from "@/hooks/queries";
 import {
   playIncomingMessageSound,
   shouldPlayIncomingSound,
@@ -122,7 +122,33 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       });
     };
 
+    // Update the per-message ticks for our own sent messages in a conversation.
+    // Lives here (always mounted) so seen/delivered status updates even when the
+    // sender isn't on that chat's detail page — otherwise the ticks only refresh
+    // if/when the conversation is re-fetched.
+    const patchOwnMessages = (
+      conversationUserId: string,
+      patch: Partial<Pick<Message, "delivered" | "read">>,
+    ) => {
+      queryClient.setQueryData<MessagesInfiniteData>(
+        queryKeys.messages(conversationUserId),
+        (old) => {
+          if (!old?.pages.length) return old;
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              messages: page.messages.map((m) =>
+                m.senderId === user.id ? { ...m, ...patch } : m,
+              ),
+            })),
+          };
+        },
+      );
+    };
+
     const onMessagesRead = (data: { readerId: string }) => {
+      patchOwnMessages(data.readerId, { delivered: true, read: true });
       queryClient.setQueryData<ChatListItem[]>(queryKeys.chats, (prev) => {
         if (!prev) return prev;
         return prev.map((chat) =>
@@ -141,6 +167,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     };
 
     const onMessagesDelivered = (data: { receiverId: string }) => {
+      patchOwnMessages(data.receiverId, { delivered: true });
       queryClient.setQueryData<ChatListItem[]>(queryKeys.chats, (prev) => {
         if (!prev) return prev;
         return prev.map((chat) =>
