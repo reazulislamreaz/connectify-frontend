@@ -41,10 +41,10 @@ import type {
 } from "@/types";
 
 /**
- * Flip to `false` once connectify-backend exposes the /admin/* endpoints.
- * Every queryFn/mutation below already contains the real api() call.
+ * Mock mode is OFF — the admin dashboard now talks to the real /admin/*
+ * endpoints in connectify-backend. Set back to `true` to demo without a backend.
  */
-export const ADMIN_USE_MOCK = true;
+export const ADMIN_USE_MOCK = false;
 
 const qs = (params: Record<string, string | number | boolean | undefined>) => {
   const sp = new URLSearchParams();

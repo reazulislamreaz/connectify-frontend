@@ -1,6 +1,13 @@
 # Connectify — Admin Dashboard Implementation Plan
 
-> Status: **Proposed** · Scope: **Privacy-safe** (aggregate metrics + public-content moderation + report-driven action; no private DM reading) · Author: planning doc
+> Status: **Frontend built (mock mode) + Backend implemented** · Scope: **Privacy-safe** (aggregate metrics + public-content moderation + report-driven action; no private DM reading)
+
+## Implementation status
+
+- **Frontend** (this repo): built under `src/app/admin/*`, runs on an in-memory mock (`ADMIN_USE_MOCK = true` in `src/hooks/adminQueries.ts`).
+- **Backend** (`../chatting-app-backend`): implemented and typechecks clean. Adds `role`/`status` to User, `requireRole`/`requireStaff`/`requireAdmin` middleware, `Report` + `AuditLog` models, `hidden` flag on Post (excluded from feed), and the full `/api/admin/*` + `POST /api/reports` surface matching the contract below.
+
+**To go live:** deploy the backend, seed an admin (`npx tsx scripts/make-admin.ts you@example.com`), then flip `ADMIN_USE_MOCK` to `false`.
 
 This plan covers both repos:
 
