@@ -246,6 +246,8 @@ export interface AuditEntry {
   action: string;
   targetType: string;
   targetId: string;
+  /** Human-readable target (e.g. the user's name) resolved by the backend. */
+  targetLabel?: string;
   metadata?: Record<string, string>;
   createdAt: string;
 }

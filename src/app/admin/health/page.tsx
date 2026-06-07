@@ -73,16 +73,25 @@ export default function AdminHealthPage() {
     {
       key: "target",
       header: "Target",
-      render: (e) => (
-        <span className="text-xs text-slate-500">
-          {e.targetType}:{e.targetId}
-          {e.metadata && (
-            <span className="ml-1 text-slate-400">
-              ({Object.entries(e.metadata).map(([k, v]) => `${k}=${v}`).join(", ")})
-            </span>
-          )}
-        </span>
-      ),
+      render: (e) => {
+        const label =
+          e.targetLabel ?? e.metadata?.name ?? `${e.targetType}:${e.targetId}`;
+        // `name` is already shown as the label — keep only the other details.
+        const extra = e.metadata
+          ? Object.entries(e.metadata).filter(([k]) => k !== "name")
+          : [];
+        return (
+          <span className="text-xs text-slate-500">
+            <span className="font-medium text-slate-700">{label}</span>
+            <span className="ml-1 text-slate-400">· {e.targetType}</span>
+            {extra.length > 0 && (
+              <span className="ml-1 text-slate-400">
+                ({extra.map(([k, v]) => `${k}=${v}`).join(", ")})
+              </span>
+            )}
+          </span>
+        );
+      },
     },
     {
       key: "when",
