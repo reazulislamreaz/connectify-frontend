@@ -168,6 +168,36 @@ export function CallProvider({ children }: { children: ReactNode }) {
     return () => stopCallRingtone();
   }, [phase]);
 
+  // Backstop: if a ringing call never resolves (the backend's call:ended signal
+  // was lost), don't leave the UI stuck ringing forever. The backend rings for
+  // 45s, so 55s normally never fires — the real signal transitions phase first.
+  useEffect(() => {
+    if (phase !== "outgoing" && phase !== "incoming") return;
+    const timeoutId = window.setTimeout(() => {
+      void leaveCallRoom();
+      resetCallState();
+      toastError("Call timed out");
+    }, 55_000);
+    return () => window.clearTimeout(timeoutId);
+  }, [phase, resetCallState]);
+
+  // On provider teardown (logout / app close), end any active call and release
+  // the RTC engine so the backend doesn't keep a stale call alive.
+  useEffect(() => {
+    return () => {
+      const call = activeCallRef.current;
+      if (call) {
+        try {
+          getSocket().emit("call:end", { callId: call.callId });
+        } catch {
+          // socket may already be gone — nothing to do
+        }
+      }
+      void leaveCallRoom();
+      stopCallRingtone();
+    };
+  }, []);
+
   const getZegoConfig = useCallback(async (): Promise<ZegoCallConfig> => {
     if (zegoConfigRef.current?.appId) return zegoConfigRef.current;
 
